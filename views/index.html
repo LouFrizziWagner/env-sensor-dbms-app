@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Hive Monitoring</title>
+</head>
+<body>
+    <h1>Hive Monitoring</h1>
+    <h2>MySQL</h2>
+    <div id="output">Loading...</div>
+
+    <script>
+        (async function loadData() {
+          try {
+            const raw = await fetch('/api/mysql/testview');
+            if (!raw.ok) throw new Error('Server error: ' + raw.status);
+      
+            const response = await raw.json();
+            const data = response.data;
+      
+            if (!Array.isArray(data)) throw new Error('No data array received');
+      
+            const output = document.getElementById('output');
+      
+            let html = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Published At</th>
+                    <th>Humidity (%)</th>
+                    <th>Temperature (°C)</th>
+                    <th>Hive Power</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+      
+            data.slice(0, 200).forEach(entry => {
+              const tempClass = entry.temperature > 35 ? 'high-temp' : '';
+              const humidityClass = entry.humidity > 80 ? 'high-humidity' : '';
+      
+              html += `
+                <tr>
+                  <td>${entry.id}</td>
+                  <td>${entry.published_at}</td>
+                  <td class="${humidityClass}">${entry.humidity ?? 'N/A'}</td>
+                  <td class="${tempClass}">${entry.temperature ?? 'N/A'}</td>
+                  <td>${entry.hive_power ?? 'N/A'}</td>
+                </tr>
+              `;
+            });
+      
+            html += '</tbody></table>';
+            output.innerHTML = html;
+          } catch (err) {
+            document.getElementById('output').innerText = 'Error loading data.';
+            console.error(err);
+          }
+        })();
+      </script>
+</body>
+</html>

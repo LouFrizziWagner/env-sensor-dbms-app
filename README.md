@@ -143,3 +143,9 @@ But queries like:
 - Top Active / Inactive Hives (Last 7 days)
 - Hourly Temperature Trends
 need logically correct time stamps.
+
+
+## D2 Data set
+D1 has more attributes that D2 does not have. For homogeneous testing data this study will use the dataset D2, the sensor data collected in the winter time period.
+
+876,106 rows in D2_sensor_data.csv
