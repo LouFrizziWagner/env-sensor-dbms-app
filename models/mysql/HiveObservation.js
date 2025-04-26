@@ -20,15 +20,15 @@ HiveObservation.init(
     },
     humidity: {
       type: DataTypes.FLOAT,
-      allowNull: true,
+      allowNull: true
     },
-    tag_number: {
+    hive_sensor_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
     beehub_name: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false
     },
     geolocation: {
       type: DataTypes.GEOMETRY('POINT'),
@@ -83,11 +83,21 @@ HiveObservation.init(
     hz_518_798828125: { type: DataTypes.FLOAT, allowNull: true },
     hz_549_31640625: { type: DataTypes.FLOAT, allowNull: true },
     hz_579_833984375: { type: DataTypes.FLOAT, allowNull: true },
+    is_test_data: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    }
   },
   {
     sequelize,
     modelName: 'HiveObservation',
-    tableName: 'sensor_data',
+    modelName: 'HiveObservation',
+    indexes: [
+      {
+        fields: ['published_at']
+      }
+    ],
+    tableName: 'hive_observations',
     timestamps: false,
   }
 );

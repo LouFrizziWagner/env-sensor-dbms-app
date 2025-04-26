@@ -2,46 +2,75 @@ import mongoose from 'mongoose';
 
 const HiveObservationSchema = new mongoose.Schema(
   {
-    published_at: { type: Date, required: true }, // Timestamp of the reading
-    temperature: { type: Number, required: true }, // Temperature in °C
-    humidity: { type: Number, required: true }, // Humidity percentage
-    tag_number: { type: Number, required: true }, // Unique tag for the hive/sensor
-    beehub_name: { type: String, required: true }, // Beehub name
-    geolocation: { type: String, required: false }, // WKT point representation
-    lat: { type: Number, required: true }, // Latitude
-    long: { type: Number, required: true }, // Longitude
-    hive_power: { type: Number, required: true }, // Hive power reading
-    date: { type: Date, required: true }, // Date of reading
-    time: { type: String, required: true }, // Time of reading
+    //id automatically handled by mongodb
+    published_at: { type: Date, required: true, index: true }, // ISO 8601 string with timezone offset
+    temperature: { type: Number }, // in celcius
+    humidity: { type: Number }, // in percent
 
-    // Frequency-related fields
-    audio_frequencies: {
-      "122.0703125": { type: Number, required: true },
-      "152.587890625": { type: Number, required: true },
-      "183.10546875": { type: Number, required: true },
-      "213.623046875": { type: Number, required: true },
-      "244.140625": { type: Number, required: true },
-      "274.658203125": { type: Number, required: true },
-      "305.17578125": { type: Number, required: true },
-      "335.693359375": { type: Number, required: true },
-      "366.2109375": { type: Number, required: true },
-      "396.728515625": { type: Number, required: true },
-      "427.24609375": { type: Number, required: true },
-      "457.763671875": { type: Number, required: true },
-      "488.28125": { type: Number, required: true },
-      "518.798828125": { type: Number, required: true },
-      "549.31640625": { type: Number, required: true },
-      "579.833984375": { type: Number, required: true },
+    // hive_sensor_id is unique for the hive sensor (renamed tag_number in csv)
+    hive_sensor_id: { type: Number, required: true },
+
+    beehub_name: { type: String, required: true },
+
+    // GeoJSON geolocation, defaulting to point (0, 0)
+    geolocation: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [0, 0]
+      }
+    },
+    lat: { type: Number, default: 0.0 },
+    long: { type: Number, default: 0.0 },
+
+    hive_power: { type: Number },
+    date: { type: Date }, // Sequelize used DATEONLY, Date is fine in Mongo
+    time: { type: String }, // Sequelize used TIME, String works in Mongo
+
+    audio_density: { type: Number },
+    audio_density_ratio: { type: Number },
+    density_variation: { type: Number },
+
+    is_test_data: {
+      type: Boolean,
+      default: false
     },
 
-    audio_density: { type: Number, required: true }, // Audio density value
-    audio_density_ratio: { type: Number, required: true }, // Ratio of audio density
-    density_variation: { type: Number, required: true }, // Variation in density
+    // Frequency fields
+    hz_122_0703125: { type: Number },
+    hz_152_587890625: { type: Number },
+    hz_183_10546875: { type: Number },
+    hz_213_623046875: { type: Number },
+    hz_244_140625: { type: Number },
+    hz_274_658203125: { type: Number },
+    hz_305_17578125: { type: Number },
+    hz_335_693359375: { type: Number },
+    hz_366_2109375: { type: Number },
+    hz_396_728515625: { type: Number },
+    hz_427_24609375: { type: Number },
+    hz_457_763671875: { type: Number },
+    hz_488_28125: { type: Number },
+    hz_518_798828125: { type: Number },
+    hz_549_31640625: { type: Number },
+    hz_579_833984375: { type: Number }
   },
   {
-    collection: 'sensor_data',
+    collection: 'hive_observations',
     timestamps: false,
+    strict: true
   }
+);
+
+// Indexes
+HiveObservationSchema.index({ geolocation: '2dsphere' });
+// Compound unique index on (published_at)
+HiveObservationSchema.index(
+  { published_at: 1},
+  { unique: true }
 );
 
 const HiveObservation = mongoose.model('HiveObservation', HiveObservationSchema);

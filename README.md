@@ -149,3 +149,89 @@ need logically correct time stamps.
 D1 has more attributes that D2 does not have. For homogeneous testing data this study will use the dataset D2, the sensor data collected in the winter time period.
 
 876,106 rows in D2_sensor_data.csv
+
+Tag_number will be in my model: hive_sensor_id,
+beehub_name is the Apiary id
+
+
+to do: style guide code 
+
+
+COUNT: 1836914
+
+D1 starts at: 2020-04-16 04:30:37+00:00
+ends at: 2020-11-05 23:59:56+00:00
+(~204 days)
+D2 starts at: 2020-11-06 00:00:09+00:00
+ends at: 2021-04-14 23:59:48+00:00
+Snythetic:
+D3
+D4
+
+D5
+D6
+
+## Test Data
+
+
+| Data Set | First Date (Timestamp)                         | Last Date (Timestamp)                          | Time Range (Days) | Sensor Observations | is_test_data | Note                                                                 |
+|----------|------------------------------------------------|------------------------------------------------|-------------------|----------------------|--------------|----------------------------------------------------------------------|
+| D1       | 16.04.2020<br>(2020-04-16 04:30:37+00:00)       | 05.11.2020<br>(2020-11-05 23:59:56+00:00)       | ~204              | 960,810 ; 960809             | false        | Original spring–fall dataset (UTC); no Daylight Saving Time  impact.                                      |
+| D2       | 06.11.2020<br>(2020-11-06 00:00:09+00:00)       | 14.04.2021<br>(2021-04-14 23:59:48+00:00)       | ~160              | 876,106 ; 876105              | false        | Original winter dataset (UTC); no DST impact.                                           |
+| D3       | 15.04.2021<br>(2021-04-15 02:00:37+02:00)       | 04.11.2021<br>(2021-11-04 20:29:56+01:00)       | ~203              | 960,809 ; 960809              | true         | Synthetic summer from D1 with a +1 year offset; includes DST transition (UTC+2 → UTC+1). |
+| D4       | 05.11.2021<br>(2021-11-05 23:59:56+01:00)       | 15.04.2022<br>(2022-04-15 00:59:35+02:00)       | ~160              | 876,105 ; 876105              | true         | Synthetic winter from D2 with a +1 year offset; remains on UTC+1, no DST change.         |
+| D5       | 15.04.2022<br>(2022-04-15 00:59:35+02:00)       | 04.11.2022<br>(2022-11-04 19:28:54+01:00)       | ~203              | 960,809              | true         | Continues D3 (which was based on D1); preserves summer structure with consistent timing and DST. |
+| D6       | 04.11.2022<br>(2022-11-04 19:30:37+01:00)       | 15.04.2023<br>(2023-04-15 00:59:35+02:00)       | ~160              | 876,105              | true         | Continues D4 (which was based on D2); aligns precisely after D5; winter span, no DST.     |
+
+
+
+876106 + 960810 + 960809 = 2797725, blank rows or header differences, COUNT in mysql = 2,797,723
+D4 = 876,105
+
+
+D1 + D2 + D3 + D4 = 3,673,828 (according to COUNT(*))
+
+Sum of all D1 to D6 = 5,510,742
+
+
+
+## Mongodb
+
+start rancher dekstop
+
+### start detached via yaml
+
+clean
+docker compose down
+docker rm mongo-container
+
+
+start
+docker compose up -d
+
+docker inspect mongo-container
+
+mongosh -u userNamehere -p passwordHere
+db.getUsers()
+
+
+mongosh
+show databases
+
+use mydb
+
+db.hive_observations.countDocuments()
+
+db.hiveobservations.find().limit(5)
+
+
+db.hive_observations.aggregate([
+  {
+    $group: {
+      _id: "$published_at",
+      count: { $sum: 1 },
+      ids: { $addToSet: "$_id" }
+    }
+  },
+  { $match: { count: { $gt: 1 } } }
+])

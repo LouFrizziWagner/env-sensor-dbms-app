@@ -1,7 +1,168 @@
 import HiveObservation from "../../models/mysql/HiveObservation.js";
-// import { Op } from "sequelize"; 
-// import { QueryTypes } from "sequelize"; 
-// import sequelize from "../config/mysql-config.js"; 
+import { Op, QueryTypes } from "sequelize"; 
+import Sequelize from "../../config/mysql-config.js";
+
+// NEW ROUTES
+
+// Controller: Create a single new observation
+export const writeSingleObservation = async (req, res) => {
+  try {
+      // Insert a single record into MySQL
+      const newData = await HiveObservation.create(req.body);
+
+      return res.status(201).json({ 
+          message: 'MySQL: Single observation created', 
+          data: newData 
+      });
+  } catch (error) {
+      console.error('writeSingleObservation error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+/** TEMP QUERIES */
+// Static June 2021 Average Temperature
+export const getOverallAverageTemperatureJune2021 = async (req, res) => {
+  try {
+      const result = await HiveObservation.findOne({
+          attributes: [
+              [Sequelize.fn('AVG', Sequelize.col('temperature')), 'avg_temp']
+          ],
+          where: {
+              published_at: {
+                  [Op.between]: ['2021-06-01T00:00:00Z', '2021-06-30T23:59:59Z']
+              }
+          },
+          raw: true
+      });
+
+      return res.status(200).json({ message: 'Overall average temperature for June 2021', avg_temp: parseFloat(result.avg_temp) });
+  } catch (error) {
+      console.error('getOverallAverageTemperatureJune2021 error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Static Full Year
+export const getAverageDailyTemperatureFullYear = async (req, res) => {
+  try {
+      const results = await HiveObservation.findAll({
+          attributes: [
+              'hive_sensor_id',
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
+              [Sequelize.fn('AVG', Sequelize.col('temperature')), 'avg_temp']
+          ],
+          where: {
+              published_at: {
+                  [Op.between]: ['2020-04-16T00:00:00Z', '2021-04-14T23:59:59Z']
+              }
+          },
+          group: ['hive_sensor_id', Sequelize.fn('DATE', Sequelize.col('published_at'))],
+          order: [
+              ['hive_sensor_id', 'ASC'],
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']
+          ]
+      });
+
+      return res.status(200).json({ message: 'Full year average temperature', data: results });
+  } catch (error) {
+      console.error('getAverageDailyTemperatureFullYear error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Static Summer
+export const getAverageDailyTemperatureSummer = async (req, res) => {
+  try {
+      const results = await HiveObservation.findAll({
+          attributes: [
+              'hive_sensor_id',
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
+              [Sequelize.fn('AVG', Sequelize.col('temperature')), 'avg_temp']
+          ],
+          where: {
+              published_at: {
+                  [Op.between]: ['2020-04-16T00:00:00Z', '2020-11-05T23:59:59Z']
+              }
+          },
+          group: ['hive_sensor_id', Sequelize.fn('DATE', Sequelize.col('published_at'))],
+          order: [
+              ['hive_sensor_id', 'ASC'],
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']
+          ]
+      });
+
+      return res.status(200).json({ message: 'Summer average temperature', data: results });
+  } catch (error) {
+      console.error('getAverageDailyTemperatureSummer error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Static Winter
+export const getAverageDailyTemperatureWinter = async (req, res) => {
+  try {
+      const results = await HiveObservation.findAll({
+          attributes: [
+              'hive_sensor_id',
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
+              [Sequelize.fn('AVG', Sequelize.col('temperature')), 'avg_temp']
+          ],
+          where: {
+              published_at: {
+                  [Op.between]: ['2020-11-06T00:00:00Z', '2021-04-14T23:59:59Z']
+              }
+          },
+          group: ['hive_sensor_id', Sequelize.fn('DATE', Sequelize.col('published_at'))],
+          order: [
+              ['hive_sensor_id', 'ASC'],
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']
+          ]
+      });
+
+      return res.status(200).json({ message: 'Winter average temperature', data: results });
+  } catch (error) {
+      console.error('getAverageDailyTemperatureWinter error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Controller: Get average daily temperature with optional date range
+export const getAverageDailyTemperature = async (req, res) => {
+  try {
+      const { start, end } = req.query;
+
+      let whereCondition = {};
+
+      if (start && end) {
+          whereCondition.published_at = {
+              [Op.between]: [start, end]
+          };
+      }
+
+      const results = await HiveObservation.findAll({
+          attributes: [
+              'hive_sensor_id',
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
+              [Sequelize.fn('AVG', Sequelize.col('temperature')), 'avg_temp']
+          ],
+          where: whereCondition,
+          group: ['hive_sensor_id', Sequelize.fn('DATE', Sequelize.col('published_at'))],
+          order: [
+              ['hive_sensor_id', 'ASC'],
+              [Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']
+          ]
+      });
+
+      return res.status(200).json({ message: 'Average daily temperature retrieved', data: results });
+  } catch (error) {
+      console.error('getAverageDailyTemperature error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 
 // Test get for preview
 

@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import sequelize from './config/mysql-config.js';    
 import sensorRoutes from './routes/sensor-observations-routes.js';
+import mysqlSensorRoutes from './routes/sensor-observations-routes.mysql.js';
 import cors from 'cors'; //Quellübergreifende (Cross-Origin) Anfrage blockiert
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -26,12 +27,14 @@ sequelize.authenticate()
 
 // Use sensor observation API routes
 app.use('/api', sensorRoutes);
+app.use('/mysql', mysqlSensorRoutes);
 
 // Serve Static Test View
 app.get('/mysql/testview', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 app.use('/mysql', express.static(path.join(__dirname, 'views')));
+//http://localhost:4000/mysql/testview
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
