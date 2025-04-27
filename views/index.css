@@ -38,3 +38,17 @@ table {
     font-weight: bold;
     color: #004080;
   }
+
+  /*Chart Dashboard*/
+  .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;    
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1rem;
+  }
+  

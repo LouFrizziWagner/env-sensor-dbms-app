@@ -1,0 +1,19 @@
+
+.dashboard-container {
+    /* display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto; */
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+
+
+}
+
+section {
+    padding: 2rem;
+}
+
+h2 {
+    font-size: 1rem;
+}

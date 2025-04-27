@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Analysis</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="temperatureanalysis-style.css">
+
+</head>
+<body>
+    <h1>Temperature Analysis</h1>
+
+    <div class="dashboard-container">
+      <section>
+        <h2>Total Average Temperature for June 2021</h2>
+        <div id="juneAverage">Loading...</div>
+      </section>
+
+      <section>
+        <h2>Average Monthly Temperature (Summer 2020)</h2>
+        <div id="summerMonthly">Loading...</div>
+      </section>
+
+    <section>
+      <h2>Average Monthly Temperature (Winter 2020-2021)</h2>
+      <div id="winterMonthly">Loading...</div>
+    </section>
+
+    <section>
+      <h2>Average Daily Temperature (Full Year 2020-2021)</h2>
+      <div id="fullYearDaily">Loading...</div>
+    </section>
+
+  </div>
+
+  <script>
+  async function loadData(endpoint, containerId, columns, rowBuilder) {
+    try {
+      const raw = await fetch(endpoint);
+      if (!raw.ok) throw new Error('Server error: ' + raw.status);
+  
+      const response = await raw.json();
+      const data = response.data;
+  
+      const output = document.getElementById(containerId);
+      output.innerHTML = ''; // Clear old content
+  
+      // Create Table
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      let headRow = '<tr>';
+      columns.forEach(col => {
+        headRow += `<th>${col}</th>`;
+      });
+      headRow += '</tr>';
+      thead.innerHTML = headRow;
+      table.appendChild(thead);
+  
+      const tbody = document.createElement('tbody');
+      table.appendChild(tbody);
+  
+      output.appendChild(table);
+  
+      // Show only 20 rows initially
+      let shownRows = 20;
+  
+      function renderRows() {
+        tbody.innerHTML = ''; // Clear
+  
+        const slice = data.slice(0, shownRows);
+  
+        slice.forEach(entry => {
+          tbody.innerHTML += rowBuilder(entry);
+        });
+  
+        if (shownRows >= data.length) {
+          showMoreButton.style.display = 'none'; // Hide button if all rows shown
+        } else {
+          showMoreButton.style.display = 'inline-block'; // Otherwise show button
+        }
+      }
+  
+      // Create "Show More" button
+      const showMoreButton = document.createElement('button');
+      showMoreButton.innerText = 'Show More';
+      showMoreButton.className = 'show-more-button'; 
+      showMoreButton.style.marginTop = '10px';
+      showMoreButton.onclick = () => {
+        shownRows += 20;
+        renderRows();
+      };
+      output.appendChild(showMoreButton);
+  
+      renderRows(); // Initial render
+    } catch (err) {
+      document.getElementById(containerId).innerText = 'Error loading data.';
+      console.error(err);
+    }
+  }
+  
+    // Load Full Year Daily Averages
+    loadData(
+      '/mysql/average-daily-temperature/year-2020-2021',
+      'fullYearDaily',
+      ['Hive ID', 'Date', 'Avg Temp (°C)'],
+      entry => `
+        <tr>
+          <td>${entry.hive_sensor_id}</td>
+          <td>${entry.day}</td>
+          <td>${parseFloat(entry.avg_temp).toFixed(2)}</td>
+        </tr>`
+    );
+  
+    // Load Summer Monthly Averages
+    loadData(
+      '/mysql/average-monthly-temperature/summer-2020',
+      'summerMonthly',
+      ['Hive ID', 'Month', 'Avg Temp (°C)'],
+      entry => `
+        <tr>
+          <td>${entry.hive_sensor_id}</td>
+          <td>${entry.month}</td>
+          <td>${parseFloat(entry.avg_temp).toFixed(2)}</td>
+        </tr>`
+    );
+  
+    // Load Winter Monthly Averages
+    loadData(
+      '/mysql/average-monthly-temperature/winter-2020',
+      'winterMonthly',
+      ['Hive ID', 'Month', 'Avg Temp (°C)'],
+      entry => `
+        <tr>
+          <td>${entry.hive_sensor_id}</td>
+          <td>${entry.month}</td>
+          <td>${parseFloat(entry.avg_temp).toFixed(2)}</td>
+        </tr>`
+    );
+  
+    // Load June 2021 total Average
+      async function loadJuneTotalAverage() {
+        try {
+          const raw = await fetch('/mysql/total-average-temperature/june-2021');
+          if (!raw.ok) throw new Error('Server error: ' + raw.status);
+
+          const response = await raw.json();
+          const juneAverage = response.avg_temp;
+
+          document.getElementById('juneAverage').innerText = `Average Temp: ${juneAverage.toFixed(2)} °C`;
+        } catch (err) {
+          document.getElementById('juneAverage').innerText = 'Error loading data.';
+          console.error(err);
+        }
+      }
+  
+  loadJuneTotalAverage();
+  </script>
+</body>
+</html>
