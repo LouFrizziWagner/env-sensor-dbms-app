@@ -235,3 +235,4 @@ db.hive_observations.aggregate([
   },
   { $match: { count: { $gt: 1 } } }
 ])
+
