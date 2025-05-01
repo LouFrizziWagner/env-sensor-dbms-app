@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hive Monitoring</title>
+  <link rel="stylesheet" href="index.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Hive Monitoring</h1>
+  <h2>MySQL</h2>
+
+  <nav>
+    <ul>
+      <li><a href="/mysql/temperatureanalysis.html">Temperature Analysis</a></li>
+    </ul>
+  </nav>
+
+  <section id="recentObservationsSection">
+    <h2>5 Most Recent Observations</h2>
+    <div id="recentObservations">Loading recent data...</div>
+  </section>
+
+  <section id="firstObservationsSection">
+    <h2>5 first Observations</h2>
+    <div id="firstObservations">Loading recent data...</div>
+  </section>
+
+     <div class="charts-container">
+
+      <section>
+        <h2>Average Daily Temperature - Hive 1 (Full Dataset)</h2>
+        <canvas id="temperatureTrendChart" width="400" height="200"</canvas>
+      </section>
+
+      <section>
+        <h2>Average Daily Temperature (Full Year)</h2>
+        <canvas id="avgDailyTempChart" width="800" height="400"></canvas>
+      </section>
+
+      <section>
+        <h2>Temperature Variance Per Hive</h2>
+        <canvas id="tempVarianceChart" width="400" height="200"></canvas>
+      </section>
+      <section>
+        <p><em>Correlation coefficient <br> between temperature and humidity</em></p>
+        <div id="correlationValue">Loading...</div>
+      </section>
+     </div>
+
+  <div id="output">Loading data...</div>
+
+  <script>
+    (async function loadData() {
+      try {
+        const raw = await fetch('/mysql/top-twenty-observations');
+        if (!raw.ok) throw new Error('Server error: ' + raw.status);
+
+        const response = await raw.json();
+        const data = response.data;
+
+        if (!Array.isArray(data)) throw new Error('No data array received');
+
+        const output = document.getElementById('output');
+
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Published At</th>
+                <th>Humidity (%)</th>
+                <th>Temperature (°C)</th>
+                <th>Hive Power</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        data.slice(0, 200).forEach(entry => {
+          const tempClass = entry.temperature > 35 ? 'high-temp' : '';
+          const humidityClass = entry.humidity > 80 ? 'high-humidity' : '';
+
+          html += `
+            <tr>
+              <td>${entry.id}</td>
+              <td>${entry.published_at}</td>
+              <td class="${humidityClass}">${entry.humidity ?? 'N/A'}</td>
+              <td class="${tempClass}">${entry.temperature ?? 'N/A'}</td>
+              <td>${entry.hive_power ?? 'N/A'}</td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      } catch (err) {
+        document.getElementById('output').innerText = 'Error loading data.';
+        console.error(err);
+      }
+    })();
+
+    
+    
+  async function renderTemperatureVarianceChart() {
+  try {
+    const res = await fetch('/mysql/temperature-variance-per-hive');
+    if (!res.ok) throw new Error('Failed to fetch temperature variance');
+
+    const { data } = await res.json();
+
+    const labels = data.map(entry => `Hive ${entry.hive_sensor_id}`);
+    const variances = data.map(entry => parseFloat(entry.temperature_variance).toFixed(2));
+
+    new Chart(document.getElementById('tempVarianceChart'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Temperature Variance (°C²)',
+          data: variances,
+          backgroundColor: '#36a2eb'
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Temperature Variance Per Hive'
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('renderTemperatureVarianceChart error:', error);
+  }
+}
+
+async function renderAverageDailyTemperatureFullYearChart() {
+  try {
+    const res = await fetch('/mysql/average-daily-temperature/year-2020-2021'); // your correct route
+    if (!res.ok) throw new Error('Failed to fetch average daily temperature');
+
+    const { data } = await res.json();
+
+    // Group data by hive_sensor_id
+    const hiveData = {};
+
+    data.forEach(entry => {
+      const hiveId = entry.hive_sensor_id;
+      if (!hiveData[hiveId]) {
+        hiveData[hiveId] = [];
+      }
+      hiveData[hiveId].push({ day: entry.day, avg_temp: parseFloat(entry.avg_temp) });
+    });
+
+    // Get all unique days sorted
+    const allDays = [...new Set(data.map(entry => entry.day))].sort();
+
+    // Prepare datasets
+    const datasets = Object.keys(hiveData).map((hiveId, index) => {
+      // Make sure data is sorted by day for each hive
+      const sortedEntries = hiveData[hiveId].sort((a, b) => a.day.localeCompare(b.day));
+      const temperatures = allDays.map(day => {
+        const found = sortedEntries.find(entry => entry.day === day);
+        return found ? found.avg_temp : null; // fill gaps with nulls
+      });
+
+      return {
+        label: `Hive ${hiveId}`,
+        data: temperatures,
+        fill: false,
+        tension: 0.1
+      };
+    });
+
+    new Chart(document.getElementById('avgDailyTempChart'), {
+      type: 'line',
+      data: {
+        labels: allDays,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Average Temperature (°C)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          }
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Average Daily Temperature Per Hive (2020-2021)'
+          },
+          legend: {
+            display: true,
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('renderAverageDailyTemperatureFullYearChart error:', error);
+  }
+};
+async function renderTemperatureTrendHive1Chart() {
+  try {
+    const res = await fetch('/mysql/temperature-trend/hive-200602/2020-2023');
+    if (!res.ok) throw new Error('Failed to fetch temperature trend');
+
+    const { data } = await res.json();
+
+    // Prepare data
+    const labels = data.map(entry => entry.day); // X-axis = days
+    const temperatures = data.map(entry => parseFloat(entry.avg_temp).toFixed(2)); // Y-axis = temperatures
+
+    // Create the Line Chart
+    new Chart(document.getElementById('temperatureTrendChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Average Daily Temperature (°C)',
+          data: temperatures,
+          borderColor: '#36a2eb',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          fill: true,
+          tension: 0.3, // Smooth curves
+          pointRadius: 0, // Optional: hide dots for smoother line
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Hive 1 - Average Daily Temperature Over Time'
+          },
+          legend: {
+            display: true
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            },
+            ticks: {
+              maxTicksLimit: 20 // show fewer date labels if too crowded
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Temperature (°C)'
+            }
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('renderTemperatureTrendHive1Chart error:', error);
+  }
+};
+
+async function loadTemperatureHumidityCorrelation() {
+  try {
+    const res = await fetch('/mysql/temperature-humidity-correlation');
+    if (!res.ok) throw new Error('Server error: ' + res.status);
+
+    const response = await res.json();
+    const correlation = response.correlation_coefficient;
+
+    document.getElementById('correlationValue').innerText = `Correlation: ${correlation.toFixed(3)}`;
+  } catch (err) {
+    document.getElementById('correlationValue').innerText = 'Error loading correlation.';
+    console.error(err);
+  }
+}
+
+async function loadFirstObservations() {
+  try {
+    const res = await fetch('/mysql/get-first-observations');
+    if (!res.ok) throw new Error('Failed to fetch first observations');
+
+    const { data } = await res.json();
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Published At (Raw)</th>
+            <th>Published At (EU)</th>
+            <th>Beehub Name</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Temperature (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Hive Power</th>
+            <th>Audio Density</th>
+            <th>Test Data</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.forEach(entry => {
+      html += `
+        <tr>
+          <td>${entry.id}</td>
+          <td>${entry.published_at}</td>
+          <td>${entry.published_at_formatted}</td>
+          <td>${entry.beehub_name}</td>
+          <td>${entry.geolocation_lat ?? entry.lat ?? 'N/A'}</td>
+          <td>${entry.geolocation_long ?? entry.long ?? 'N/A'}</td>
+          <td>${entry.temperature ?? 'N/A'}</td>
+          <td>${entry.humidity ?? 'N/A'}</td>
+          <td>${entry.hive_power ?? 'N/A'}</td>
+          <td>${entry.audio_density ?? 'N/A'}</td>
+          <td>${entry.is_test_data ? 'Yes' : 'No'}</td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('firstObservations').innerHTML = html;
+  } catch (err) {
+    document.getElementById('firstObservations').innerText = 'Failed to load recent data.';
+    console.error(err);
+  }
+}
+
+async function loadRecentObservations() {
+  try {
+    const res = await fetch('/mysql/get-last-observations');
+    if (!res.ok) throw new Error('Failed to fetch recent observations');
+
+    const { data } = await res.json();
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Published At (Raw)</th>
+            <th>Published At (EU)</th>
+            <th>Beehub Name</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Temperature (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Hive Power</th>
+            <th>Audio Density</th>
+            <th>Test Data</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.forEach(entry => {
+      html += `
+        <tr>
+          <td>${entry.id}</td>
+          <td>${entry.published_at}</td>
+          <td>${entry.published_at_formatted}</td>
+          <td>${entry.beehub_name}</td>
+          <td>${entry.geolocation_lat ?? entry.lat ?? 'N/A'}</td>
+          <td>${entry.geolocation_long ?? entry.long ?? 'N/A'}</td>
+          <td>${entry.temperature ?? 'N/A'}</td>
+          <td>${entry.humidity ?? 'N/A'}</td>
+          <td>${entry.hive_power ?? 'N/A'}</td>
+          <td>${entry.audio_density ?? 'N/A'}</td>
+          <td>${entry.is_test_data ? 'Yes' : 'No'}</td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('recentObservations').innerHTML = html;
+  } catch (err) {
+    document.getElementById('recentObservations').innerText = 'Failed to load recent data.';
+    console.error(err);
+  }
+}
+
+loadFirstObservations();
+loadRecentObservations();
+loadTemperatureHumidityCorrelation();
+renderTemperatureTrendHive1Chart();
+renderAverageDailyTemperatureFullYearChart();
+renderTemperatureVarianceChart();
+  </script>
+</body>
+</html>

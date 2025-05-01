@@ -9,41 +9,52 @@
 </head>
 <body>
   <h1>Hive Monitoring</h1>
-  <h2>MySQL</h2>
+  <h2>MongoDB</h2>
 
   <nav>
     <ul>
       <li><a href="/mysql/temperatureanalysis.html">Temperature Analysis</a></li>
     </ul>
   </nav>
-     <div class="charts-container">
 
-      <section>
-        <h2>Average Daily Temperature - Hive 1 (Full Dataset)</h2>
-        <canvas id="temperatureTrendChart" width="400" height="200"</canvas>
-      </section>
+  <section id="recentObservationsSection">
+    <h2>5 Most Recent Observations</h2>
+    <div id="recentObservations">Loading recent data...</div>
+  </section>
 
-      <section>
-        <h2>Average Daily Temperature (Full Year)</h2>
-        <canvas id="avgDailyTempChart" width="800" height="400"></canvas>
-      </section>
+  <section id="firstObservationsSection">
+    <h2>5 first Observations</h2>
+    <div id="firstObservations">Loading recent data...</div>
+  </section>
 
-      <section>
-        <h2>Temperature Variance Per Hive</h2>
-        <canvas id="tempVarianceChart" width="400" height="200"></canvas>
-      </section>
-      <section>
-        <p><em>Correlation coefficient <br> between temperature and humidity</em></p>
-        <div id="correlationValue">Loading...</div>
-      </section>
-     </div>
+  <!-- <div class="charts-container">
+
+  <section>
+    <h2>Average Daily Temperature - Hive 1 (Full Dataset)</h2>
+    <canvas id="temperatureTrendChart" width="400" height="200"</canvas>
+  </section>
+
+  <section>
+    <h2>Average Daily Temperature (Full Year)</h2>
+    <canvas id="avgDailyTempChart" width="800" height="400"></canvas>
+  </section>
+
+  <section>
+    <h2>Temperature Variance Per Hive</h2>
+    <canvas id="tempVarianceChart" width="400" height="200"></canvas>
+  </section>
+  <section>
+    <p><em>Correlation coefficient <br> between temperature and humidity</em></p>
+    <div id="correlationValue">Loading...</div>
+  </section>
+  </div> -->
 
   <div id="output">Loading data...</div>
 
   <script>
     (async function loadData() {
       try {
-        const raw = await fetch('/api/mysql/testview');
+        const raw = await fetch('/mongodb/top-twenty-observations');
         if (!raw.ok) throw new Error('Server error: ' + raw.status);
 
         const response = await raw.json();
@@ -94,7 +105,7 @@
     
   async function renderTemperatureVarianceChart() {
   try {
-    const res = await fetch('/mysql/temperature-variance-per-hive');
+    const res = await fetch('/mongodb/temperature-variance-per-hive');
     if (!res.ok) throw new Error('Failed to fetch temperature variance');
 
     const { data } = await res.json();
@@ -135,7 +146,7 @@
 
 async function renderAverageDailyTemperatureFullYearChart() {
   try {
-    const res = await fetch('/mysql/average-daily-temperature/year-2020-2021'); // your correct route
+    const res = await fetch('/mongodb/average-daily-temperature/year-2020-2021'); // your correct route
     if (!res.ok) throw new Error('Failed to fetch average daily temperature');
 
     const { data } = await res.json();
@@ -213,7 +224,7 @@ async function renderAverageDailyTemperatureFullYearChart() {
 };
 async function renderTemperatureTrendHive1Chart() {
   try {
-    const res = await fetch('/mysql/temperature-trend/hive-200602/2020-2023');
+    const res = await fetch('/mongodb/temperature-trend/hive-200602/2020-2023');
     if (!res.ok) throw new Error('Failed to fetch temperature trend');
 
     const { data } = await res.json();
@@ -275,7 +286,7 @@ async function renderTemperatureTrendHive1Chart() {
 
 async function loadTemperatureHumidityCorrelation() {
   try {
-    const res = await fetch('/mysql/temperature-humidity-correlation');
+    const res = await fetch('/mongodb/temperature-humidity-correlation');
     if (!res.ok) throw new Error('Server error: ' + res.status);
 
     const response = await res.json();
@@ -288,11 +299,118 @@ async function loadTemperatureHumidityCorrelation() {
   }
 }
 
-// Call it
-loadTemperatureHumidityCorrelation();
-renderTemperatureTrendHive1Chart();
-renderAverageDailyTemperatureFullYearChart();
-renderTemperatureVarianceChart();
+async function loadFirstObservations() {
+  try {
+    const res = await fetch('/mongodb/get-first-observations');
+    if (!res.ok) throw new Error('Failed to fetch first observations');
+
+    const { data } = await res.json();
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Published At (Raw)</th>
+            <th>Published At (EU)</th>
+            <th>Beehub Name</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Temperature (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Hive Power</th>
+            <th>Audio Density</th>
+            <th>Test Data</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.forEach(entry => {
+      html += `
+        <tr>
+          <td>${entry.id}</td>
+          <td>${entry.published_at}</td>
+          <td>${entry.published_at_formatted}</td>
+          <td>${entry.beehub_name}</td>
+          <td>${entry.geolocation_lat ?? entry.lat ?? 'N/A'}</td>
+          <td>${entry.geolocation_long ?? entry.long ?? 'N/A'}</td>
+          <td>${entry.temperature ?? 'N/A'}</td>
+          <td>${entry.humidity ?? 'N/A'}</td>
+          <td>${entry.hive_power ?? 'N/A'}</td>
+          <td>${entry.audio_density ?? 'N/A'}</td>
+          <td>${entry.is_test_data ? 'Yes' : 'No'}</td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('firstObservations').innerHTML = html;
+  } catch (err) {
+    document.getElementById('firstObservations').innerText = 'Failed to load recent data.';
+    console.error(err);
+  }
+}
+
+async function loadRecentObservations() {
+  try {
+    const res = await fetch('/mongodb/get-last-observations');
+    if (!res.ok) throw new Error('Failed to fetch recent observations');
+
+    const { data } = await res.json();
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Published At (Raw)</th>
+            <th>Published At (EU)</th>
+            <th>Beehub Name</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Temperature (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Hive Power</th>
+            <th>Audio Density</th>
+            <th>Test Data</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.forEach(entry => {
+      html += `
+        <tr>
+          <td>${entry.id}</td>
+          <td>${entry.published_at}</td>
+          <td>${entry.published_at_formatted}</td>
+          <td>${entry.beehub_name}</td>
+          <td>${entry.geolocation_lat ?? entry.lat ?? 'N/A'}</td>
+          <td>${entry.geolocation_long ?? entry.long ?? 'N/A'}</td>
+          <td>${entry.temperature ?? 'N/A'}</td>
+          <td>${entry.humidity ?? 'N/A'}</td>
+          <td>${entry.hive_power ?? 'N/A'}</td>
+          <td>${entry.audio_density ?? 'N/A'}</td>
+          <td>${entry.is_test_data ? 'Yes' : 'No'}</td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('recentObservations').innerHTML = html;
+  } catch (err) {
+    document.getElementById('recentObservations').innerText = 'Failed to load recent data.';
+    console.error(err);
+  }
+}
+
+loadFirstObservations();
+loadRecentObservations();
+// loadTemperatureHumidityCorrelation();
+// renderTemperatureTrendHive1Chart();
+// renderAverageDailyTemperatureFullYearChart();
+// renderTemperatureVarianceChart();
   </script>
 </body>
 </html>
