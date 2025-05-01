@@ -2,6 +2,77 @@ import HiveObservation from "../../models/mysql/HiveObservation.js";
 import { Op, QueryTypes } from "sequelize"; 
 import Sequelize from "../../config/mysql-config.js";
 
+export const getLastFiveObservations = async (req, res) => {
+  try {
+    const results = await HiveObservation.findAll({
+      limit: 5,
+      order: [['published_at', 'DESC']],
+      raw: true
+    });
+
+    const transformedResults = results.map(entry => {
+      const date = new Date(entry.published_at);
+      const formattedDate = date.toLocaleString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return {
+        ...entry,
+        published_at_formatted: formattedDate,
+        geolocation_lat: entry.geolocation?.coordinates?.[1] ?? null,
+        geolocation_long: entry.geolocation?.coordinates?.[0] ?? null,
+      };
+    });
+
+    return res.status(200).json({
+      message: 'Get 5 latest hive observations',
+      data: transformedResults
+    });
+  } catch (error) {
+    console.error('getLastFiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getFirstFiveObservations = async (req, res) => {
+  try {
+    const results = await HiveObservation.findAll({
+      limit: 5,
+      order: [['published_at', 'ASC']],
+      raw: true
+    });
+
+    const transformedResults = results.map(entry => {
+      const date = new Date(entry.published_at);
+      const formattedDate = date.toLocaleString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return {
+        ...entry,
+        published_at_formatted: formattedDate,
+        geolocation_lat: entry.geolocation?.coordinates?.[1] ?? null,
+        geolocation_long: entry.geolocation?.coordinates?.[0] ?? null,
+      };
+    });
+
+    return res.status(200).json({
+      message: 'Get 5 oldest hive observations',
+      data: transformedResults
+    });
+  } catch (error) {
+    console.error('getFirstFiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 export const getAllBeehubNames = async (req, res) => {
     try {
@@ -19,23 +90,45 @@ export const getAllBeehubNames = async (req, res) => {
     }
   };
   
-  export const getAllHiveSensors = async (req, res) => {
+  export const getDistinctHiveSensors = async (req, res) => {
     try {
       const results = await HiveObservation.findAll({
         attributes: [
-          [Sequelize.fn('DISTINCT', Sequelize.col('hive_sensor_id')), 'beehub_namehive_sensor_id']
+          [Sequelize.fn('DISTINCT', Sequelize.col('hive_sensor_id')), 'hive_sensor_id']
         ],
         raw: true
       });
   
-      return res.status(200).json({ hive_sensor_id: results.map(r => r.beehub_namehive_sensor_id) });
+      return res.status(200).json({
+        hive_sensor_ids: results.map(r => r.hive_sensor_id)
+      });
     } catch (error) {
       console.error('hive_sensor_id error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
 
-  export const bulkRead1000HiveObservations = async (req, res) => {
+// One Thousand
+  export const bulkReadOneThousandHiveObservations = async (req, res) => {
+    try {
+      const results = await HiveObservation.findAll({
+        limit: 1000,
+        order: [['published_at', 'DESC']], // latest first
+        raw: true
+      });
+  
+      return res.status(200).json({
+        message: 'Bulk read of 1000 hive observations',
+        data: results
+      });
+    } catch (error) {
+      console.error('bulkReadOneThousandHiveObservations error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  //Ten Thousand
+  export const bulkReadTenThousandHiveObservations = async (req, res) => {
     try {
       const results = await HiveObservation.findAll({
         limit: 10000,
@@ -44,29 +137,29 @@ export const getAllBeehubNames = async (req, res) => {
       });
   
       return res.status(200).json({
-        message: 'Bulk read of 10,000 hive observations',
+        message: 'Bulk read of 10000 hive observations',
         data: results
       });
     } catch (error) {
-      console.error('bulkRead1000HiveObservations error:', error);
+      console.error('bulkReadOneThousandHiveObservations error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
 
-  export const bulkRead500000HiveObservations = async (req, res) => {
+  export const bulkReadOneHundredThousandHiveObservations = async (req, res) => {
     try {
       const results = await HiveObservation.findAll({
-        limit: 5000000,
+        limit: 100000,
         order: [['published_at', 'DESC']], // latest first
         raw: true
       });
   
       return res.status(200).json({
-        message: 'Bulk read of 500,000 hive observations',
+        message: 'Bulk read of 100,000 hive observations',
         data: results
       });
     } catch (error) {
-      console.error('bulkRead500000HiveObservations error:', error);
+      console.error('bulkReadOneHundredThousandHiveObservations error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
@@ -112,3 +205,51 @@ export const getAllBeehubNames = async (req, res) => {
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+
+// Test get for preview
+export const getMysqlTestHiveObservations = async (req, res) => {
+  try {
+    console.log('getMysqlTestHiveObservations route hit');
+
+    const data = await HiveObservation.findAll({
+      limit: 20,
+      order: [['published_at', 'DESC']],
+      raw: true,
+    });
+    // Log the first row
+    console.log('DB result sample:', data.slice(0, 1)); 
+
+    return res.status(200).json({
+      message: 'Fetched from DB',
+      data
+    });
+  } catch (error) {
+    console.error('getMysqlTestHiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// delete for test inserts
+export const deleteMostRecentObservation = async (req, res) => {
+  try {
+    const latest = await HiveObservation.findOne({
+      order: [['published_at', 'DESC']]
+    });
+
+    if (!latest) {
+      return res.status(404).json({ message: 'No observations found to delete.' });
+    }
+
+    await latest.destroy();
+
+    return res.status(200).json({
+      message: 'Most recent observation deleted.',
+      deletedId: latest.id,
+      deletedTimestamp: latest.published_at
+    });
+  } catch (error) {
+    console.error('Delete error:', error);
+    return res.status(500).json({ error: 'Failed to delete the most recent observation.' });
+  }
+};

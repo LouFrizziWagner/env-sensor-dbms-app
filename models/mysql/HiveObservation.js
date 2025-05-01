@@ -91,10 +91,10 @@ HiveObservation.init(
   {
     sequelize,
     modelName: 'HiveObservation',
-    modelName: 'HiveObservation',
     indexes: [
       {
         fields: ['published_at']
+        //hive id or beehub name
       }
     ],
     tableName: 'hive_observations',
