@@ -1,13 +1,21 @@
 import { Router } from 'express';
 import {
-  writeSingleObservation
-  } from '../controllers/mysql/hive-observation.controller.js';
+  insertSingleObservation,
+  bulkInsertAfterOffline,
+  simulateSensorInsertion,
+  bulkInsertObservations,
+  bulkInsertObservationsAtomicity
+} from '../controllers/mysql/InsertObservationsController.js'
 import {
+  deleteMostRecentObservation,
+  getMysqlTestHiveObservations,
+  getLastFiveObservations,
+  getFirstFiveObservations,
   getAllBeehubNames,
-  getAllHiveSensors,
-  bulkRead1000HiveObservations,
-  bulkRead500000HiveObservations,
-  insertSingleHiveObservation,
+  getDistinctHiveSensors,
+  bulkReadOneThousandHiveObservations,
+  bulkReadTenThousandHiveObservations,
+  bulkReadOneHundredThousandHiveObservations,
   getTimeDifferencesBetweenObservations
 } from '../controllers/mysql/HiveAnalysisController.js'
 import {
@@ -40,17 +48,45 @@ import {
 
 const router = Router();
 
-router.post('/mysql/write-single-observation', writeSingleObservation);
+/** Inserts */
+router.post('/single-observation-insert', insertSingleObservation);
+router.post('/mysql/bulk-insert-after-offline', bulkInsertAfterOffline);
+// router.post('/mysql/large-bulk-batch-insert', bulkInsertAfterOffline);
 
+// router.post('/mysql/benchmark-insert-2', insertTwoBatches);
+// router.post('/mysql/benchmark-insert-10', insertTenBatches);
+// router.post('/mysql/benchmark-insert-realistic', insertRealisticSensorDB);
+
+// router.post('/mysql/bulk-insert', bulkInsertObservations);
+// router.post('/mysql/bulk-insert-atomicity', bulkInsertObservations);
+// router.post('/simulate-sensor-insert', async (req, res) => {
+//   const { observations, batchSize = 100, delayMs = 1000 } = req.body;
+
+//   if (!observations || !Array.isArray(observations) || observations.length === 0) {
+//     return res.status(400).json({ message: 'Invalid or missing observations array.' });
+//   }
+
+//   try {
+//     await simulateSensorInsertion(observations, batchSize, delayMs);
+//     res.status(200).json({ message: 'Simulation completed successfully.' });
+//   } catch (error) {
+//     console.error('Simulation error:', error);
+//     res.status(500).json({ message: 'Simulation failed.', error: error.message });
+//   }
+// });
 
 /** General Queries */
+router.get('/get-last-observations', getLastFiveObservations);
+router.get('/get-first-observations', getFirstFiveObservations);
 router.get('/beehub-names', getAllBeehubNames);
-router.get('/hive-sensors', getAllHiveSensors);
+router.get('/hive-sensors', getDistinctHiveSensors);
 router.get('/time-between-observations/14-days', getTimeDifferencesBetweenObservations);
 
-router.get('/bulk-read-10000', bulkRead1000HiveObservations);
-router.get('/bulk-read-500000', bulkRead500000HiveObservations);
-router.post('/single-insert', insertSingleHiveObservation);
+// before run in mysql: RESET QUERY CACHE;
+router.get('/bulk-read-1000', bulkReadOneThousandHiveObservations);
+router.get('/bulk-read-10000', bulkReadTenThousandHiveObservations);
+router.get('/bulk-read-100000', bulkReadOneHundredThousandHiveObservations);
+//router.post('/single-insert', insertSingleHiveObservation);
 
 
 /** Temperature Analysis */
@@ -82,6 +118,9 @@ router.get('/temperature-variance-per-hive/2020-2023', getTemperatureVariancePer
 router.get('/humidity-daily-range/2020-2023', getHumidityDailyRangeAllTime);
 router.get('/temperature-trend/hive-200602/2020-2023', getTemperatureTrendHive200602);
 
+// Testing
+router.get('/top-twenty-observations', getMysqlTestHiveObservations);
+router.delete('/delete-recent-observation', deleteMostRecentObservation);
 
 
 export default router;
