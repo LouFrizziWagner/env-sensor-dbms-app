@@ -11,36 +11,60 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const inputFile = path.join('database', 'data', 'D1_sensor_data.csv');
-const outputFile = path.join(__dirname, 'synthetic_20000_from_csv.json');
-const totalRecords = 200000;
+const outputFile = path.join(__dirname, 'synthetic_1000_from_csv.json');
+const totalRecords = 1000;
 const incrementMinutes = 5;
 
 //let currentTimestamp = dayjs('2023-04-15T00:59:35+02:00');
-let currentTimestamp = dayjs('2023-04-18T10:14:35+02:00').add(5, 'minute');
+let currentTimestamp = dayjs('2023-04-14T10:15:35+02:00').add(5, 'minute');
 
 //2023-04-18T10:14:35.000Z
 
 const sourceRows = [];
 const outputRows = [];
 
-// build and validate each row
+// builds and validate each row
 async function createValidatedHiveObservation(sourceRow, timestamp) {
-  const record = HiveObservation.build({
+  const parsed = {
     published_at: timestamp.toISOString(),
-    hive_sensor_id: sourceRow.tag_number,
+    hive_sensor_id: parseInt(sourceRow.tag_number),
     beehub_name: sourceRow.beehub_name,
-    temperature: parseFloat(sourceRow.temperature ?? (Math.random() * 15 + 15)).toFixed(2),
-    humidity: parseFloat(sourceRow.humidity ?? (Math.random() * 30 + 40)).toFixed(2),
-    hive_power: parseFloat(sourceRow.hive_power ?? (Math.random() * 50 + 100)).toFixed(2),
-    audio_density: parseFloat(sourceRow.audio_density ?? (Math.random() * 10 + 5)).toFixed(2),
-    audio_density_ratio: parseFloat(sourceRow.audio_density_ratio ?? (Math.random())).toFixed(2),
-    density_variation: parseFloat(sourceRow.density_variation ?? (Math.random() * 5)).toFixed(2),
-    is_test_data: true
-  });
+    temperature: parseFloat(sourceRow.temperature ?? (Math.random() * 15 + 15)),
+    humidity: parseFloat(sourceRow.humidity ?? (Math.random() * 30 + 40)),
+    hive_power: parseFloat(sourceRow.hive_power ?? (Math.random() * 50 + 100) * -1),
+    audio_density: parseFloat(sourceRow.audio_density ?? (Math.random() * 10 + 5)),
+    audio_density_ratio: parseFloat(sourceRow.audio_density_ratio ?? Math.random()),
+    density_variation: parseFloat(sourceRow.density_variation ?? (Math.random() * 5)),
+    lat: 0,
+    long: 0,
+    geolocation: {
+      type: 'Point',
+      coordinates: [0, 0]
+    },
+    is_test_data: true,
 
-  await record.validate(); 
+    // 16 frequency bands (mocked with noise or pulled from CSV if present)
+    hz_122_0703125: parseFloat(sourceRow.hz_122_0703125 ?? (Math.random() * 10 - 5)),
+    hz_152_587890625: parseFloat(sourceRow.hz_152_587890625 ?? (Math.random() * 10 - 5)),
+    hz_183_10546875: parseFloat(sourceRow.hz_183_10546875 ?? (Math.random() * 10 - 5)),
+    hz_213_623046875: parseFloat(sourceRow.hz_213_623046875 ?? (Math.random() * 10 - 5)),
+    hz_244_140625: parseFloat(sourceRow.hz_244_140625 ?? (Math.random() * 10 - 5)),
+    hz_274_658203125: parseFloat(sourceRow.hz_274_658203125 ?? (Math.random() * 10 - 5)),
+    hz_305_17578125: parseFloat(sourceRow.hz_305_17578125 ?? (Math.random() * 10 - 5)),
+    hz_335_693359375: parseFloat(sourceRow.hz_335_693359375 ?? (Math.random() * 10 - 5)),
+    hz_366_2109375: parseFloat(sourceRow.hz_366_2109375 ?? (Math.random() * 10 - 5)),
+    hz_396_728515625: parseFloat(sourceRow.hz_396_728515625 ?? (Math.random() * 10 - 5)),
+    hz_427_24609375: parseFloat(sourceRow.hz_427_24609375 ?? (Math.random() * 10 - 5)),
+    hz_457_763671875: parseFloat(sourceRow.hz_457_763671875 ?? (Math.random() * 10 - 5)),
+    hz_488_28125: parseFloat(sourceRow.hz_488_28125 ?? (Math.random() * 10 - 5)),
+    hz_518_798828125: parseFloat(sourceRow.hz_518_798828125 ?? (Math.random() * 10 - 5)),
+    hz_549_31640625: parseFloat(sourceRow.hz_549_31640625 ?? (Math.random() * 10 - 5)),
+    hz_579_833984375: parseFloat(sourceRow.hz_579_833984375 ?? (Math.random() * 10 - 5))
+  };
 
-  return record.toJSON();
+  const record = HiveObservation.build(parsed);
+  await record.validate();
+  return parsed; // not record.toJSON() — we control the format directly
 }
 
 // Main
