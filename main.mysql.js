@@ -3,14 +3,14 @@ import bodyParser from 'body-parser';
 import sequelize from './config/mysql-config.js';    
 // import sensorRoutes from './routes/sensor-observations-routes.js';
 import mysqlSensorRoutes from './routes/sensor-observations-routes.mysql.js';
-import mongodbSensorRoutes from './routes/sensor-observations-routes.mongodb.js';
 import cors from 'cors'; //Quellübergreifende (Cross-Origin) Anfrage blockiert
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
+//app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '100mb' }))
 
 // Fix for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -21,17 +21,16 @@ app.use(cors());
 app.use(bodyParser.json());
 
 console.log("---------- Environmental Sensor DBMS App started ----------");
+console.log("---------- running on mysql ----------");
 
-// Test the MySQL connection
+
+// Connect to MySQL instance
 sequelize.authenticate()
   .then(() => console.log('MySQL connected...'))
   .catch(err => console.log('Error: ' + err)); 
 
 // Use sensor observation API routes
-// app.use('/api', sensorRoutes);
 app.use('/mysql', mysqlSensorRoutes);
-app.use('/mongodb', mongodbSensorRoutes);
-
 
 // Serve Static Test View
 app.get('/mysql/testview', (req, res) => {

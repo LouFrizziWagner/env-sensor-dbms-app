@@ -202,11 +202,16 @@ start rancher dekstop
 ### start detached via yaml
 
 clean
+
+### end docker:
 docker compose down
+
+
+### remove attention:
 docker rm mongo-container
 
 
-start
+### start
 docker compose up -d
 
 docker inspect mongo-container
@@ -239,3 +244,31 @@ db.hive_observations.aggregate([
 ## Momngo DB Modeling
 
 db.hive_observations.getIndexes()
+
+Monitor with explain() plans for performance.
+db.<collection>.find(<query>).explain("executionStats")
+
+## STATUS MONGO
+
+mongostat --host localhost --port 27017
+
+sensor_data_benchmark> db.stats()
+{
+  db: 'sensor_data_benchmark',
+  collections: Long('1'),
+  views: Long('0'),
+  objects: Long('5510741'),
+  avgObjSize: 778.6360420495175,
+  dataSize: 4290861561,
+  storageSize: 1005899776,
+  indexes: Long('2'),
+  indexSize: 118415360,
+  totalSize: 1124315136,
+  scaleFactor: Long('1'),
+  fsUsedSize: 9721090048,
+  fsTotalSize: 105088212992,
+  ok: 1
+}
+
+### CPU TESTING
+htop  # shows CPU, memory, per-process stats
