@@ -29,7 +29,7 @@ export const getHourlyHivePowerTrendStatic = async (req, res) => {
       console.error('getHourlyHivePowerTrendStatic error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
-  };
+};
 
 /**
  * Get Top 5 hives by highest average humidity during static week (2021-06-01 to 2021-06-07).
@@ -90,37 +90,37 @@ export const getHourlyHivePowerTrendStatic = async (req, res) => {
     }
   };
 
-  /** Humidity Daily Range (Static: 2020-04-16 to 2021-04-14) */
-  export const getHumidityDailyRangeStatic = async (req, res) => {
-    try {
-      const start = '2020-04-16';
-      const end = '2021-04-14';
-  
-      const results = await HiveObservation.findAll({
-        attributes: [
-          [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
-          [Sequelize.fn('MAX', Sequelize.col('humidity')), 'max_humidity'],
-          [Sequelize.fn('MIN', Sequelize.col('humidity')), 'min_humidity'],
-          [Sequelize.literal('MAX(humidity) - MIN(humidity)'), 'humidity_range']
-        ],
-        where: {
-          published_at: {
-            [Op.between]: [`${start}T00:00:00Z`, `${end}T23:59:59Z`]
-          }
-        },
-        group: [Sequelize.fn('DATE', Sequelize.col('published_at'))],
-        order: [[Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']],
-        raw: true
-      });
-  
-      return res.status(200).json({ message: `Static: Humidity daily range from ${start} to ${end}`, data: results });
-    } catch (error) {
-      console.error('getHumidityDailyRangeStatic error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+/** Humidity Daily Range (Static: 2020-04-16 to 2021-04-14) */
+export const getHumidityDailyRangeStatic = async (req, res) => {
+  try {
+    const start = '2020-04-16';
+    const end = '2021-04-14';
 
-  /** Daily Hive Power Anomaly Detection (Std Dev) (Static: 2020-04-16 to 2021-04-14) */
+    const results = await HiveObservation.findAll({
+      attributes: [
+        [Sequelize.fn('DATE', Sequelize.col('published_at')), 'day'],
+        [Sequelize.fn('MAX', Sequelize.col('humidity')), 'max_humidity'],
+        [Sequelize.fn('MIN', Sequelize.col('humidity')), 'min_humidity'],
+        [Sequelize.literal('MAX(humidity) - MIN(humidity)'), 'humidity_range']
+      ],
+      where: {
+        published_at: {
+          [Op.between]: [`${start}T00:00:00Z`, `${end}T23:59:59Z`]
+        }
+      },
+      group: [Sequelize.fn('DATE', Sequelize.col('published_at'))],
+      order: [[Sequelize.fn('DATE', Sequelize.col('published_at')), 'ASC']],
+      raw: true
+    });
+
+    return res.status(200).json({ message: `Static: Humidity daily range from ${start} to ${end}`, data: results });
+  } catch (error) {
+    console.error('getHumidityDailyRangeStatic error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/** Daily Hive Power Anomaly Detection (Std Dev) (Static: 2020-04-16 to 2021-04-14) */
   export const getDailyHivePowerAnomalyStatic = async (req, res) => {
     try {
       const start = '2020-04-16';
@@ -226,7 +226,7 @@ export const getHourlyHivePowerTrendStatic = async (req, res) => {
   };
 
 
-  /** Over whole data set (real plus synthetic data) */
+/** Over whole data set (real plus synthetic data) */
 
 /** Get hourly average hive power trend for the entire dataset.*/
 export const getHourlyHivePowerTrendAllTime = async (req, res) => {

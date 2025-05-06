@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import {
   insertSingleObservation,
-  bulkInsertAfterOffline,
-  simulateSensorInsertion,
-  bulkInsertObservations,
-  bulkInsertObservationsAtomicity
+  simulateBulkInsertAfterOfflineFor60Minutes,
+  bulkInsertAfterOffline
 } from '../controllers/mysql/InsertObservationsController.js'
 import {
   deleteMostRecentObservation,
@@ -50,34 +48,11 @@ const router = Router();
 
 /** Inserts */
 router.post('/single-observation-insert', insertSingleObservation);
-router.post('/mysql/bulk-insert-after-offline', bulkInsertAfterOffline);
-// router.post('/mysql/large-bulk-batch-insert', bulkInsertAfterOffline);
+router.post('/bulk-insert-after-offline/60-min', simulateBulkInsertAfterOfflineFor60Minutes);
+router.post('/bulk-insert-after-offline/dynamic', bulkInsertAfterOffline);
 
-// router.post('/mysql/benchmark-insert-2', insertTwoBatches);
-// router.post('/mysql/benchmark-insert-10', insertTenBatches);
-// router.post('/mysql/benchmark-insert-realistic', insertRealisticSensorDB);
-
-// router.post('/mysql/bulk-insert', bulkInsertObservations);
-// router.post('/mysql/bulk-insert-atomicity', bulkInsertObservations);
-// router.post('/simulate-sensor-insert', async (req, res) => {
-//   const { observations, batchSize = 100, delayMs = 1000 } = req.body;
-
-//   if (!observations || !Array.isArray(observations) || observations.length === 0) {
-//     return res.status(400).json({ message: 'Invalid or missing observations array.' });
-//   }
-
-//   try {
-//     await simulateSensorInsertion(observations, batchSize, delayMs);
-//     res.status(200).json({ message: 'Simulation completed successfully.' });
-//   } catch (error) {
-//     console.error('Simulation error:', error);
-//     res.status(500).json({ message: 'Simulation failed.', error: error.message });
-//   }
-// });
 
 /** General Queries */
-router.get('/get-last-observations', getLastFiveObservations);
-router.get('/get-first-observations', getFirstFiveObservations);
 router.get('/beehub-names', getAllBeehubNames);
 router.get('/hive-sensors', getDistinctHiveSensors);
 router.get('/time-between-observations/14-days', getTimeDifferencesBetweenObservations);
@@ -118,8 +93,10 @@ router.get('/temperature-variance-per-hive/2020-2023', getTemperatureVariancePer
 router.get('/humidity-daily-range/2020-2023', getHumidityDailyRangeAllTime);
 router.get('/temperature-trend/hive-200602/2020-2023', getTemperatureTrendHive200602);
 
-// Testing
+/** Routes for testing */
 router.get('/top-twenty-observations', getMysqlTestHiveObservations);
+router.get('/get-last-observations', getLastFiveObservations);
+router.get('/get-first-observations', getFirstFiveObservations);
 router.delete('/delete-recent-observation', deleteMostRecentObservation);
 
 

@@ -181,31 +181,35 @@ export const getAllBeehubNames = async (req, res) => {
     }
   };
 
-  export const getTimeDifferencesBetweenObservations = async (req, res) => {
-    try {
-      const start = '2020-04-16';
-      const end = '2020-04-30';
-  
-      const results = await Sequelize.query(`
-        SELECT 
-          hive_sensor_id,
-          published_at,
-          TIMESTAMPDIFF(MINUTE, 
-            LAG(published_at) OVER (PARTITION BY hive_sensor_id ORDER BY published_at ASC),
-            published_at
-          ) AS minutes_between
-        FROM hive_observations
-        WHERE published_at BETWEEN '${start}' AND '${end}'
-        ORDER BY hive_sensor_id, published_at;
-      `, { type: QueryTypes.SELECT });
-  
-      return res.status(200).json({ message: 'Time differences between observations', data: results });
-    } catch (error) {
-      console.error('getTimeDifferencesBetweenObservations error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
 
+/** Calculating time differences in minutes between consecutive observations grouped by hive_sensor_id. (Time Range D1 - D2 )*/
+export const getTimeDifferencesBetweenObservations = async (req, res) => {
+  try {
+    const start = '2020-04-16';
+    const end = '2020-04-30';
+
+    const results = await sequelize.query(`
+      SELECT 
+        hive_sensor_id,
+        published_at,
+        TIMESTAMPDIFF(MINUTE,
+          LAG(published_at) OVER (PARTITION BY hive_sensor_id ORDER BY published_at ASC),
+          published_at
+        ) AS minutes_between
+      FROM hive_observations
+      WHERE published_at BETWEEN :start AND :end
+      ORDER BY hive_sensor_id ASC, published_at ASC;
+    `, {
+      replacements: { start, end },
+      type: QueryTypes.SELECT,
+    });
+
+    return res.status(200).json({ message: 'Time differences between observations', data: results });
+  } catch (error) {
+    console.error('getTimeDifferencesBetweenObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 // Test get for preview
 export const getMysqlTestHiveObservations = async (req, res) => {

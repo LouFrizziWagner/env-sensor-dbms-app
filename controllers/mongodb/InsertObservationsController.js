@@ -1,26 +1,28 @@
-import HiveObservation from "../../models/mysql/HiveObservation.js";
-import { Op, QueryTypes } from "sequelize"; 
-import Sequelize from "../../config/mysql-config.js";
+import HiveObservation from "../../models/mongodb/HiveObservation.js";
 
     
 // Single Observation Create simple 
 export const insertSingleObservation = async (req, res) => {
   try {
     const data = req.body;
+
     const geo = data.geolocation || (
       data.lat != null && data.long != null
         ? { type: 'Point', coordinates: [parseFloat(data.long), parseFloat(data.lat)] }
         : null
     );
+
     const publishedDate = new Date(data.published_at);
 
-    const inserted = await HiveObservation.create({
+    const observation = new HiveObservation({
       ...data,
       geolocation: geo,
       date: publishedDate.toISOString().slice(0, 10),
       time: publishedDate.toISOString().slice(11, 19),
       is_test_data: data.is_test_data === true
     });
+
+    const inserted = await observation.save();
 
     return res.status(201).json({
       message: 'Observation inserted.',
@@ -32,9 +34,7 @@ export const insertSingleObservation = async (req, res) => {
   }
 };
 
-
-// Simulate scenario: after offline, sensor bulk inserts to db generated or body data, 
-// simulating 1 observation per minute, network outage of 60 minutes 
+// Simulate scenario: after offline, sensor bulk inserts to db
 const hive_sensor_ids = [200602, 201700, 200599, 200828];
 const beehub_names = ['nectar-bh131', 'nectar-bh121'];
 
@@ -51,7 +51,7 @@ export const simulateBulkInsertAfterOfflineFor60Minutes = async (req, res) => {
       fakeData = null
     } = req.body;
 
-    // Random ID fallback if not provided
+    // Randomly pick valid IDs if none provided
     const selectedHiveId = hive_sensor_id ?? hive_sensor_ids[Math.floor(Math.random() * hive_sensor_ids.length)];
     const selectedBeehub = beehub_name ?? beehub_names[Math.floor(Math.random() * beehub_names.length)];
 
@@ -60,20 +60,21 @@ export const simulateBulkInsertAfterOfflineFor60Minutes = async (req, res) => {
 
     const observations = fakeData || Array.from({ length: count }).map((_, i) => {
       const timestamp = new Date(now.getTime() - (count - i) * frequencySeconds * 1000);
+      const coords = [parseFloat(long), parseFloat(lat)];
 
       return {
         published_at: timestamp,
-        date: timestamp.toISOString().slice(0, 10),
+        date: timestamp,
         time: timestamp.toISOString().slice(11, 19),
         temperature: parseFloat((Math.random() * 5 + 25).toFixed(2)),
         humidity: parseFloat((Math.random() * 20 + 40).toFixed(2)),
         hive_sensor_id: selectedHiveId,
         beehub_name: selectedBeehub,
-        lat: parseFloat(lat),
-        long: parseFloat(long),
+        lat,
+        long,
         geolocation: {
           type: 'Point',
-          coordinates: [parseFloat(long), parseFloat(lat)]
+          coordinates: coords
         },
         hive_power: parseFloat((Math.random() * 10 + 90).toFixed(2)),
         audio_density: parseFloat((Math.random() * 10).toFixed(2)),
@@ -84,14 +85,14 @@ export const simulateBulkInsertAfterOfflineFor60Minutes = async (req, res) => {
       };
     });
 
-    const inserted = await HiveObservation.bulkCreate(observations, { validate: true, ignoreDuplicates: true });
+    const inserted = await HiveObservation.insertMany(observations, { ordered: false });
 
     return res.status(201).json({
       message: `Inserted ${inserted.length} observations for hive_sensor_id ${selectedHiveId} at ${selectedBeehub}`,
       data: inserted
     });
   } catch (error) {
-    console.error('Sequelize bulk insert error:', error);
+    console.error('Bulk insert error:', error);
     return res.status(500).json({ error: 'Bulk insert failed.', details: error.message });
   }
 };
@@ -116,7 +117,7 @@ export const bulkInsertAfterOffline = async (req, res) => {
     const observations = req.body;
 
     if (!Array.isArray(observations) || observations.length === 0) {
-      return res.status(400).json({ error: 'Request body must be a non empty array of observations.' });
+      return res.status(400).json({ error: 'Request body must be a non-empty array of observations.' });
     }
 
     const transformed = observations.map(obs => {
@@ -139,7 +140,7 @@ export const bulkInsertAfterOffline = async (req, res) => {
         audio_density: obs.audio_density,
         audio_density_ratio: obs.audio_density_ratio,
         density_variation: obs.density_variation,
-        date: publishedDate.toISOString().slice(0, 10),
+        date: publishedDate,
         time: publishedDate.toISOString().slice(11, 19),
         is_test_data: obs.is_test_data ?? true,
         hz_122_0703125: obs.hz_122_0703125,
@@ -161,7 +162,7 @@ export const bulkInsertAfterOffline = async (req, res) => {
       };
     });
 
-    const result = await HiveObservation.bulkCreate(transformed, { validate: true });
+    const result = await HiveObservation.insertMany(transformed, { ordered: false });
 
     return res.status(201).json({
       message: `Successfully inserted ${result.length} offline observations.`,
@@ -182,77 +183,34 @@ export async function simulateSensorInsertion(observations, batchSize = 100, del
   const total = observations.length;
   let currentIndex = 0;
 
-  while (currentIndex < total) {
-    const batch = observations.slice(currentIndex, currentIndex + batchSize);
+  try {
+    await connectMongo();
+    console.log(`Connected to MongoDB`);
 
-    const transaction = await sequelize.transaction();
-    try {
-      await HiveObservation.bulkCreate(batch, { validate: true, transaction });
-      await transaction.commit();
-      console.log(`\n Batch ${currentIndex / batchSize + 1}: Inserted ${batch.length} observations`);
-    } catch (error) {
-      await transaction.rollback();
-      console.error(`Batch ${currentIndex / batchSize + 1}: Error, rolling back.`);
-      throw error; // stop everything on first error
+    while (currentIndex < total) {
+      const batch = observations.slice(currentIndex, currentIndex + batchSize);
+
+      try {
+        await HiveObservation.insertMany(batch, { ordered: false });
+        console.log(`+++ Batch ${Math.floor(currentIndex / batchSize) + 1}: Inserted ${batch.length} observations`);
+      } catch (error) {
+        console.error(` ---- Batch ${Math.floor(currentIndex / batchSize) + 1} failed:`, error.message);
+        // Continue to next batch instead of halting (optional behavior)
+      }
+
+      currentIndex += batchSize;
+
+      if (currentIndex < total) {
+        console.log(`...Sleeping for ${delayMs} ms before next batch...`);
+        await sleep(delayMs);
+      }
     }
 
-    currentIndex += batchSize;
-
-    if (currentIndex < total) {
-      console.log(`...Sleeping for ${delayMs} ms before the next batch...`);
-      await sleep(delayMs);
-    }
+    console.log('\nSensor data simulation completed.');
+  } finally {
+    await disconnectMongo?.();
+    console.log('Disconnected from MongoDB');
   }
-
-  console.log('\n Sensor data simulation completed.');
 }
 
-
-
-
 //** LATER POTENTIAL TESTING */
-
-// //Bulk Insert with transaction
-// export async function bulkInsertObservationsAtomicity(observations) {
-//     const transaction = await sequelize.transaction();
-//     try {
-//       await HiveObservation.bulkCreate(observations, {
-//         validate: true,
-//         transaction
-//       });
-//       await transaction.commit();
-//       console.log(`Inserted ${observations.length} observations committed.`);
-//     } catch (error) {
-//       await transaction.rollback();
-//       console.error('Failed to bulk insert observations and rolled back:', error);
-//       throw error; 
-//     }
-//   }
-  
-
-
-//Bulk insert batch size 2
-// async function insertTwoBatches(req, res) {
-//   const { observations } = req.body;
-
-//   if (!observations || !Array.isArray(observations) || observations.length === 0) {
-//     return res.status(400).json({ message: 'Invalid observations array.' });
-//   }
-
-//   const batchSize = Math.ceil(observations.length / 2);
-
-//   try {
-//     for (let i = 0; i < observations.length; i += batchSize) {
-//       const batch = observations.slice(i, i + batchSize);
-//       const transaction = await sequelize.transaction();
-//       await HiveObservation.bulkCreate(batch, { validate: true, transaction });
-//       await transaction.commit();
-//       console.log(`✅ Inserted batch of ${batch.length} observations (2 batch mode)`);
-//     }
-
-//     res.status(200).json({ message: 'Inserted in 2 batches successfully.' });
-//   } catch (error) {
-//     console.error('❌ Error inserting 2 batches:', error);
-//     res.status(500).json({ message: 'Error inserting 2 batches.', error: error.message });
-//   }
-// }

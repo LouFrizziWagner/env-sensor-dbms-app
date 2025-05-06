@@ -121,7 +121,7 @@ export const getAverageDailyHumidityPerHive = async (req, res) => {
     }
   };
 
-  /** Maximum Humidity during Full Year Period */
+  /** Min Humidity during Full Year Period */
   export const getMinHumidityFullYear = async (req, res) => {
     try {
       const result = await HiveObservation.findOne({
