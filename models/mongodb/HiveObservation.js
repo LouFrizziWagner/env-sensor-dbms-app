@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const HiveObservationSchema = new mongoose.Schema(
   {
     //id automatically handled by mongodb
-    published_at: { type: Date, required: true, index: true }, // ISO 8601 string with timezone offset
+    published_at: { type: Date, required: true }, // ISO 8601 string with timezone offset
     temperature: { type: Number }, // in celcius
     humidity: { type: Number }, // in percent
 
@@ -12,6 +12,7 @@ const HiveObservationSchema = new mongoose.Schema(
 
     beehub_name: { type: String, required: true },
 
+    
     // GeoJSON geolocation, defaulting to point (0, 0)
     geolocation: {
       type: {
@@ -24,6 +25,7 @@ const HiveObservationSchema = new mongoose.Schema(
         default: [0, 0]
       }
     },
+
     lat: { type: Number, default: 0.0 },
     long: { type: Number, default: 0.0 },
 
@@ -66,7 +68,7 @@ const HiveObservationSchema = new mongoose.Schema(
 );
 
 // Indexes
-HiveObservationSchema.index({ geolocation: '2dsphere' });
+//HiveObservationSchema.index({ geolocation: '2dsphere' });
 // Compound unique index on (published_at)
 HiveObservationSchema.index(
   { published_at: 1},
