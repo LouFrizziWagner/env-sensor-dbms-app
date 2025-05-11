@@ -11,13 +11,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const inputFile = path.join('database', 'data', 'D1_sensor_data.csv');
-const outputFile = path.join(__dirname, 'synthetic_1000_from_csv.json');
-const totalRecords = 1000;
+const outputFile = path.join(__dirname, 'synthetic_100000_from_csv.json');
+const totalRecords = 10000;
 const incrementMinutes = 5;
 
 //let currentTimestamp = dayjs('2023-04-15T00:59:35+02:00');
-let currentTimestamp = dayjs('2023-04-14T10:15:35+02:00').add(5, 'minute');
-
+//2023-06-18T01:35:35.000Z
+let currentTimestamp = dayjs('2023-06-18T10:15:35+02:00').add(5, 'minute');
 //2023-04-18T10:14:35.000Z
 
 const sourceRows = [];
