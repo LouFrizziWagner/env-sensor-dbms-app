@@ -11,6 +11,12 @@ const sequelize = new Sequelize(
     {
         host: process.env.MYSQL_HOST,
         dialect: 'mysql',
+        pool: {
+        max: 100, // connections
+        min: 0,
+        acquire: 60000, // wait 60sec to acquire a free connection
+        idle: 10000 //close unused connections after 10sec
+        },
         logging: process.env.NODE_ENV === 'development' ? console.log : false
 
 });
