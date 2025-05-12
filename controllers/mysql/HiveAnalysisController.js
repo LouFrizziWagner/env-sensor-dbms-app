@@ -188,7 +188,7 @@ export const getTimeDifferencesBetweenObservations = async (req, res) => {
     const start = '2020-04-16';
     const end = '2020-04-30';
 
-    const results = await sequelize.query(`
+    const results = await Sequelize.query(`
       SELECT 
         hive_sensor_id,
         published_at,
