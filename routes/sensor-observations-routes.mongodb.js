@@ -27,7 +27,8 @@ import {
     getHourlyHivePowerTrendStaticOptimized,
     getTemperatureVariancePerHiveStatic,
     getHourlyHivePowerTrendAllTime,
-    getHumidityDailyRangeAllTime
+    getHumidityDailyRangeAllTime,
+    getTemperatureHumidityCorrelation
 } from '../controllers/mongodb/AggregationsController.js';
 
 
@@ -60,6 +61,7 @@ router.get('/max-humidity/year-2020-2021', getMaxHumidityFullYear);
 router.get('/hourly-hive-power-trend', getHourlyHivePowerTrendStatic);
 router.get('/hourly-hive-power-trend', getHourlyHivePowerTrendStaticOptimized); //mongodb duplicate with optimizatioin
 router.get('/temperature-variance-per-hive', getTemperatureVariancePerHiveStatic);
+router.get('/temperature-humidity-correlation', getTemperatureHumidityCorrelation);
 // over three year data:
 router.get('/hourly-hive-power-trend/2020-2023', getHourlyHivePowerTrendAllTime);
 router.get('/humidity-daily-range/2020-2023', getHumidityDailyRangeAllTime);

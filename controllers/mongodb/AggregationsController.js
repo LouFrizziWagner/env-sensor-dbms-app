@@ -143,11 +143,67 @@ export const getTemperatureVariancePerHiveStatic = async (req, res) => {
 
 /** Daily Hive Power Anomaly Detection (Std Dev) (Static: 2020-04-16 to 2021-04-14) */
 
-/** Correlation coefficient between temperature and humidity */
 
 /** compareAudioPowerMorningEvening */
 
 /** Over whole data set (real plus synthetic data) */
+
+/** Correlation coefficient between temperature and humidity */
+export const getTemperatureHumidityCorrelation = async (req, res) => {
+  try {
+    // First Pass: Calculate averages
+    const [averages] = await HiveObservation.aggregate([
+      {
+        $group: {
+          _id: null,
+          avg_temp: { $avg: "$temperature" },
+          avg_hum: { $avg: "$humidity" }
+        }
+      }
+    ]);
+
+    if (!averages) {
+      return res.status(400).json({ error: 'No data is available for calculation.' });
+    }
+
+    const { avg_temp, avg_hum } = averages;
+
+    // Second Pass: Calculate variance, covariance
+    const [stats] = await HiveObservation.aggregate([
+      {
+        $group: {
+          _id: null,
+          var_temp: { $avg: { $pow: [{ $subtract: ["$temperature", avg_temp] }, 2] } },
+          var_hum: { $avg: { $pow: [{ $subtract: ["$humidity", avg_hum] }, 2] } },
+          avg_temp_hum: { $avg: { $multiply: ["$temperature", "$humidity"] } }
+        }
+      }
+    ]);
+
+    if (!stats) {
+      return res.status(400).json({ error: 'No data is available for calculation' });
+    }
+
+    const { var_temp, var_hum, avg_temp_hum } = stats;
+
+    if (var_temp === 0 || var_hum === 0) {
+      return res.status(400).json({ error: 'Variance is zero, therefore cannot compute correlation.' });
+    }
+
+    const covariance = avg_temp_hum - (avg_temp * avg_hum);
+    const correlation = covariance / (Math.sqrt(var_temp) * Math.sqrt(var_hum));
+
+    return res.status(200).json({
+      message: 'Temperature vs Humidity Correlation',
+      correlation_coefficient: correlation
+    });
+
+  } catch (error) {
+    console.error('getTemperatureHumidityCorrelation error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 /** Get hourly average hive power trend for the entire dataset.*/
 export const getHourlyHivePowerTrendAllTime = async (req, res) => {
