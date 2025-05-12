@@ -2,5 +2,7 @@
 *.csv
 node_modules/
 .DS_Store
-jmeter-tests/jmeter-tests
 benchmarking-scripts/extra-tests
+backup/
+jmeter-tests/*
+*.log
