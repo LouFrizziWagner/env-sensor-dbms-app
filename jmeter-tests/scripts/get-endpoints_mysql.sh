@@ -26,7 +26,7 @@ if [[ ! -f "$JMX_FILE" ]]; then
 fi
 
 # Create results directory 
-RESULTS_DIR="jmeter-tests/results"
+RESULTS_DIR="get-50-nodes_mysql/results"
 mkdir -p "$RESULTS_DIR"
 
 for endpoint in "${ENDPOINTS[@]}"; do
@@ -38,14 +38,14 @@ for endpoint in "${ENDPOINTS[@]}"; do
   jmeter -n -t "$JMX_FILE" \
     -JBASE_URL=localhost \
     -JPORT_NUMBER=4000 \
-    -JRAMP_UP_IN_SECONDS=20 \
+    -JRAMP_UP_IN_SECONDS=50\
     -JLOOP_COUNT=10 \
-    -JTHREAD_COUNT=20 \
+    -JTHREAD_COUNT=50 \
     -JENDPOINT_PATH="$endpoint" \
     -l "$RESULTS_DIR/${CLEAN_NAME}.jtl"
 
   # Generate reports
-  REPORT_DIR="jmeter-tests/reports/${CLEAN_NAME}"
+  REPORT_DIR="get-50-nodes_mysql/reports/${CLEAN_NAME}"
   mkdir -p "$REPORT_DIR"
   jmeter -g "$RESULTS_DIR/${CLEAN_NAME}.jtl" -o "$REPORT_DIR"
 
