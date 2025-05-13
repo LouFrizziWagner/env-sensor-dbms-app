@@ -3,8 +3,6 @@ import HiveObservation from "../../models/mongodb/HiveObservation.js";
 // Get distinct Hive Sensors
 export const getDistinctHiveSensors = async (req, res) => {
   try {
-    console.log('getDistinctHiveSensors (MongoDB) route hit');
-
     const hive_sensor_ids = await HiveObservation.distinct('hive_sensor_id');
 
     return res.status(200).json({
@@ -19,7 +17,6 @@ export const getDistinctHiveSensors = async (req, res) => {
 // bulk read 1000
 export const bulkReadOneThousandHiveObservations = async (req, res) => {
   try {
-    console.log('bulkReadOneThousandHiveObservations (MongoDB) route hit');
 
     const results = await HiveObservation.find({})
       .sort({ published_at: -1 }) // DESC = latest first
@@ -39,7 +36,6 @@ export const bulkReadOneThousandHiveObservations = async (req, res) => {
 // Bulk read 10 000
 export const bulkReadTenThousandHiveObservations = async (req, res) => {
   try {
-    console.log('bulkReadTenThousandHiveObservations (MongoDB) route hit');
 
     const results = await HiveObservation.find({})
       .sort({ published_at: -1 }) // DESC = newest first
@@ -59,7 +55,6 @@ export const bulkReadTenThousandHiveObservations = async (req, res) => {
 // bulk read 100.000
 export const bulkReadOneHundredThousandHiveObservations = async (req, res) => {
   try {
-    console.log('bulkReadOneHundredThousandHiveObservations (MongoDB) route hit');
 
     const results = await HiveObservation.find({})
       .sort({ published_at: -1 }) // DESC = newest first
@@ -143,7 +138,6 @@ export const getTimeDifferencesBetweenObservations = async (req, res) => {
 // Test get for preview
 export const getMongodbTestHiveObservations = async (req, res) => {
   try {
-    console.log('getMongodbTestHiveObservations route hit');
 
     const data = await HiveObservation.find({})
       .sort({ published_at: -1 }) // DESC
@@ -165,7 +159,6 @@ export const getMongodbTestHiveObservations = async (req, res) => {
 
 export const getLastFiveObservations = async (req, res) => {
   try {
-    console.log('getLastFiveObservations (MongoDB) route hit');
 
     const results = await HiveObservation.find({})
       .sort({ published_at: -1 }) // DESCENDING
@@ -204,7 +197,6 @@ export const getLastFiveObservations = async (req, res) => {
 
 export const getFirstFiveObservations = async (req, res) => {
   try {
-    console.log('getFirstFiveObservations (MongoDB) route hit');
 
     const results = await HiveObservation.find({})
       .sort({ published_at: 1 }) // ASCENDING
