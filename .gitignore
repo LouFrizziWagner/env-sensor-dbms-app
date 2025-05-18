@@ -4,5 +4,7 @@ node_modules/
 .DS_Store
 benchmarking-scripts/extra-tests
 backup/
-jmeter-tests/*
+jmeter-tests/test-results/*
 *.log
+jmeter-tests/*/reports
+jmeter-tests/*/results
