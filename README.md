@@ -193,7 +193,16 @@ D1 + D2 + D3 + D4 = 3,673,828 (according to COUNT(*))
 
 Sum of all D1 to D6 = 5,510,742
 
+## Test Data Formatted for thesis:
 
+| Data Set | First Date (Timestamp)            | Last Date (Timestamp)             | Time Range (Days) | Sensor Observations | is_test_data | Note                                                                 |
+|---------|-----------------------------------|-----------------------------------|-------------------|----------------------|--------------|----------------------------------------------------------------------|
+| D1      | 2020-04-16 04:30:37 UTC            | 2020-11-05 23:59:56 UTC            | ~204              | 960,810              | false        | Original spring–fall dataset (UTC); no DST impact.                                      |
+| D2      | 2020-11-06 00:00:09 UTC            | 2021-04-14 23:59:48 UTC            | ~160              | 876,106              | false        | Original winter dataset (UTC); no DST impact.                                           |
+| D3      | 2021-04-15 02:00:37 UTC+2          | 2021-11-04 20:29:56 UTC+1          | ~203              | 960,810              | true         | Synthetic summer replica of D1, shifted by +1 year; includes DST transition (UTC+2 → UTC+1). |
+| D4      | 2021-11-05 23:59:56 UTC+1          | 2022-04-15 00:59:35 UTC+2          | ~160              | 876,106              | true         | Synthetic winter replica of D2, shifted by +1 year; remains on UTC+1, no DST change.         |
+| D5      | 2022-04-15 00:59:35 UTC+2          | 2022-11-04 19:28:54 UTC+1          | ~203              | 960,810              | true         | Continuation of D3 (replica of D1); maintains summer pattern and DST transition.             |
+| D6      | 2022-11-04 19:30:37 UTC+1          | 2023-04-15 00:59:35 UTC+2          | ~160              | 876,106              | true         | Continuation of D4 (replica of D2); aligned after D5; winter pattern, no DST.                |
 
 ## Mongodb
 
@@ -217,6 +226,8 @@ docker compose up -d
 docker inspect mongo-container
 
 mongosh -u userNamehere -p passwordHere
+mongosh -u root -p admin
+
 db.getUsers()
 
 
@@ -272,3 +283,48 @@ sensor_data_benchmark> db.stats()
 
 ### CPU TESTING
 htop  # shows CPU, memory, per-process stats
+
+```
+{
+    "published_at": "${__time(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')}",
+    "temperature": ${__Random(10,40)},
+    "humidity": ${__Random(30,80)},
+    "hive_sensor_id": ${__RandomFromList(200602,201700,200599,200828)},
+    "beehub_name": "${__RandomFromList(nectar-bh131,nectar-bh121)}",
+    "geolocation": {
+        "type": "Point",
+        "coordinates": [0, 0]
+    },
+    "lat": 0,
+    "long": 0,
+    "hive_power": ${__Random(-20,20)},
+    "date": null,
+    "time": "${__time(HH:mm:ss)}",
+    "audio_density": ${__Random(0,50)},
+    "audio_density_ratio": ${__Random(0.1,1.0)},
+    "density_variation": ${__Random(0,50)},
+    "hz_122_0703125": ${__Random(-20,10)},
+    "hz_152_587890625": ${__Random(-20,10)},
+    "hz_183_10546875": ${__Random(-20,10)},
+    "hz_213_623046875": ${__Random(-20,10)},
+    "hz_244_140625": ${__Random(-20,10)},
+    "hz_274_658203125": ${__Random(-20,10)},
+    "hz_305_17578125": ${__Random(-20,10)},
+    "hz_335_693359375": ${__Random(-20,10)},
+    "hz_366_2109375": ${__Random(-20,10)},
+    "hz_396_728515625": ${__Random(-20,10)},
+    "hz_427_24609375": ${__Random(-20,10)},
+    "hz_457_763671875": ${__Random(-20,10)},
+    "hz_488_28125": ${__Random(-20,10)},
+    "hz_518_798828125": ${__Random(-20,10)},
+    "hz_549_31640625": ${__Random(-20,10)},
+    "hz_579_833984375": ${__Random(-20,10)},
+    "is_test_data": true
+}
+```
+
+
+
+## DOcker Mysql
+
+docker compose -f docker-compose-mysql.yml up -d
