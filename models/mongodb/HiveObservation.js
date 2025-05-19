@@ -72,7 +72,7 @@ const HiveObservationSchema = new mongoose.Schema(
 // Compound unique index on (published_at)
 HiveObservationSchema.index(
   { published_at: 1},
-  { unique: true }
+  { unique: false }
 );
 
 const HiveObservation = mongoose.model('HiveObservation', HiveObservationSchema);
