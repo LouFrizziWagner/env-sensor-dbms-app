@@ -1,12 +1,7 @@
 #!/bin/bash
 
 ENDPOINTS=(
-"/mongodb/get-first-observations"
-"/mongodb/get-last-observations"
-"/mongodb/bulk-read-1000"
-"/mongodb/bulk-read-10000"
-"/mongodb/average-monthly-temperature/summer-2020"
-"/mongodb/average-humidity/june-2021"
+"/mongodb/single-observation-insert"
 )
 
 # Read JMX file path from first script argument
@@ -19,7 +14,7 @@ if [[ ! -f "$JMX_FILE" ]]; then
 fi
 
 # Create results directory 
-RESULTS_DIR="get-simple-100-nodes_mongodb/results"
+RESULTS_DIR="post-5min-1-node_mongodb/results"
 mkdir -p "$RESULTS_DIR"
 
 for endpoint in "${ENDPOINTS[@]}"; do
@@ -29,16 +24,17 @@ for endpoint in "${ENDPOINTS[@]}"; do
   echo "Running test for endpoint: $endpoint"
   
   jmeter -n -t "$JMX_FILE" \
+    -JDURATION_IN_SECONDS=300 \
+    -JTHREAD_DELAY_IN_MS=60000 \
     -JBASE_URL=localhost \
     -JPORT_NUMBER=3000 \
-    -JRAMP_UP_IN_SECONDS=100 \
-    -JLOOP_COUNT=10 \
-    -JTHREAD_COUNT=100 \
+    -JRAMP_UP_IN_SECONDS=1 \
+    -JTHREAD_COUNT=1 \
     -JENDPOINT_PATH="$endpoint" \
     -l "$RESULTS_DIR/${CLEAN_NAME}.jtl"
 
   # Generate reports
-  REPORT_DIR="get-simple-100-nodes_mongodb/reports/${CLEAN_NAME}"
+  REPORT_DIR="post-5min-1-node_mongodb/reports/${CLEAN_NAME}"
   mkdir -p "$REPORT_DIR"
   jmeter -g "$RESULTS_DIR/${CLEAN_NAME}.jtl" -o "$REPORT_DIR"
 
