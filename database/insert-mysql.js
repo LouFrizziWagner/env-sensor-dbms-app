@@ -11,6 +11,8 @@ dotenv.config();
 // Summer sensor data: D1_sensor_data.csv, 
 // Winter sensor data: D2_sensor_data.csv
 // const csvFilePath = path.join('database', 'data', 'D6_sensor_data_synthetic.csv');
+const csvFilePath = path.join('database', 'data', 'D6_sensor_data_synthetic.csv');
+
 const BATCH_SIZE = 1000;
 
 // Helper Methods
@@ -94,7 +96,7 @@ const seed = async () => {
     const [results] = await sequelize.query(`
       SELECT COUNT(*) AS count
       FROM information_schema.tables
-      WHERE table_schema = 'sensor_data_benchmark'
+      WHERE table_schema = 'hive_sensor_data_benchmark'
       AND table_name = 'hive_observations';
     `);
 
@@ -134,6 +136,7 @@ const seed = async () => {
           audio_density_ratio FLOAT DEFAULT NULL,
           density_variation FLOAT DEFAULT NULL,
           is_test_data BOOLEAN DEFAULT FALSE,
+          INDEX idx_published_at (published_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
       console.log('\n Table hive_observations created.');

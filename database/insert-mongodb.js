@@ -8,7 +8,9 @@ import HiveObservation from '../models/mongodb/HiveObservation.js';
 
 dotenv.config();
 // D1_sensor_data.csv, D2_sensor_data.csv + 4 synthetic sensor observations
+//const csvFilePath = path.resolve('database', 'data', 'D6_sensor_data_synthetic.csv');
 const csvFilePath = path.resolve('database', 'data', 'D6_sensor_data_synthetic.csv');
+
 const csvFileName = path.parse(csvFilePath).name; 
 
 // Helpers
