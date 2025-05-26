@@ -10,7 +10,7 @@ services:
       - mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: admin
-      MYSQL_DATABASE: sensor_data_benchmark
+      MYSQL_DATABASE: hive_sensor_data_benchmark
       MYSQL_ROOT_HOST: '%'
     command:
       --innodb-buffer-pool-size=2G

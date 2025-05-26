@@ -8,3 +8,13 @@ jmeter-tests/test-results/*
 *.log
 jmeter-tests/*/reports
 jmeter-tests/*/results
+
+
+/reports/*
+
+/results/*
+
+/jmeter-tests
+
+
+/services/data
