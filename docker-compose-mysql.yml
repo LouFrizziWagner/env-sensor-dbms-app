@@ -2,12 +2,20 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8
+    image: mysql:8.0.36
     container_name: mysql-container
     ports:
       - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: sensor_data_benchmark
       MYSQL_ROOT_HOST: '%'
+    command:
+      --innodb-buffer-pool-size=2G
     restart: unless-stopped
+
+volumes:
+  mysql-data:
+    driver: local
