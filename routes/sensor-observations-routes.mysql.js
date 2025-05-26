@@ -12,6 +12,8 @@ import {
   getAllBeehubNames,
   getDistinctHiveSensors,
   bulkReadOneThousandHiveObservations,
+  bulkReadFiveThousandHiveObservations,
+  bulkReadTwentyThousandHiveObservations,
   bulkReadTenThousandHiveObservations,
   bulkReadOneHundredThousandHiveObservations,
   getTimeDifferencesBetweenObservations
@@ -59,7 +61,9 @@ router.get('/time-between-observations/14-days', getTimeDifferencesBetweenObserv
 
 // before run in mysql: RESET QUERY CACHE;
 router.get('/bulk-read-1000', bulkReadOneThousandHiveObservations);
+router.get('/bulk-read-5000', bulkReadFiveThousandHiveObservations);
 router.get('/bulk-read-10000', bulkReadTenThousandHiveObservations);
+router.get('/bulk-read-20000', bulkReadTwentyThousandHiveObservations);
 router.get('/bulk-read-100000', bulkReadOneHundredThousandHiveObservations);
 //router.post('/single-insert', insertSingleHiveObservation);
 

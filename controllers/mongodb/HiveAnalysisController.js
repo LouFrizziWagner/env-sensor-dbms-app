@@ -33,6 +33,24 @@ export const bulkReadOneThousandHiveObservations = async (req, res) => {
   }
 };
 
+export const bulkReadFiveThousandHiveObservations = async (req, res) => {
+  try {
+
+    const results = await HiveObservation.find({})
+      .sort({ published_at: -1 }) // DESC = latest first
+      .limit(5000)
+      .lean(); // Return raw JS objects (no Mongoose overhead)
+
+    return res.status(200).json({
+      message: 'Bulk read of 5000 hive observations',
+      data: results
+    });
+  } catch (error) {
+    console.error('bulkReadFiveThousandHiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Bulk read 10 000
 export const bulkReadTenThousandHiveObservations = async (req, res) => {
   try {
@@ -48,6 +66,25 @@ export const bulkReadTenThousandHiveObservations = async (req, res) => {
     });
   } catch (error) {
     console.error('bulkReadTenThousandHiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Bulk read 20 000
+export const bulkReadTwentyThousandHiveObservations = async (req, res) => {
+  try {
+
+    const results = await HiveObservation.find({})
+      .sort({ published_at: -1 }) // DESC = newest first
+      .limit(20000)
+      .lean(); // like Sequelize's raw: true
+
+    return res.status(200).json({
+      message: 'Bulk read of 20000 hive observations',
+      data: results
+    });
+  } catch (error) {
+    console.error('bulkReadTwentyThousandHiveObservations error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

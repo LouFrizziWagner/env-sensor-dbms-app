@@ -67,13 +67,18 @@ const HiveObservationSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
-//HiveObservationSchema.index({ geolocation: '2dsphere' });
-// Compound unique index on (published_at)
+
 HiveObservationSchema.index(
   { published_at: 1},
   { unique: false }
 );
+
+/*
+HiveObservationSchema.index(
+  { hive_sensor_id: 1, published_at: 1 },
+  { unique: true }
+);
+*/
 
 const HiveObservation = mongoose.model('HiveObservation', HiveObservationSchema);
 export default HiveObservation;

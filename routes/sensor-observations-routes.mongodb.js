@@ -7,7 +7,9 @@ import {
 import {
     getDistinctHiveSensors,
     bulkReadOneThousandHiveObservations,
+    bulkReadFiveThousandHiveObservations,
     bulkReadTenThousandHiveObservations,
+    bulkReadTwentyThousandHiveObservations,
     bulkReadOneHundredThousandHiveObservations,
     getMongodbTestHiveObservations,
     getLastFiveObservations,
@@ -47,7 +49,9 @@ router.get('/time-between-observations/14-days', getTimeDifferencesBetweenObserv
 /** Reads */
 // before run: RESET CACHE;
 router.get('/bulk-read-1000', bulkReadOneThousandHiveObservations);
+router.get('/bulk-read-5000', bulkReadFiveThousandHiveObservations);
 router.get('/bulk-read-10000', bulkReadTenThousandHiveObservations);
+router.get('/bulk-read-20000', bulkReadTwentyThousandHiveObservations);
 router.get('/bulk-read-100000', bulkReadOneHundredThousandHiveObservations);
 
 /** Temperature Analysis */

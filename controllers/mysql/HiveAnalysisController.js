@@ -75,57 +75,75 @@ export const getFirstFiveObservations = async (req, res) => {
 };
 
 export const getAllBeehubNames = async (req, res) => {
-    try {
-      const results = await HiveObservation.findAll({
-        attributes: [
-          [Sequelize.fn('DISTINCT', Sequelize.col('beehub_name')), 'beehub_name']
-        ],
-        raw: true
-      });
+  try {
+    const results = await HiveObservation.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('beehub_name')), 'beehub_name']
+      ],
+      raw: true
+    });
+
+    return res.status(200).json({ beehub_name: results.map(r => r.beehub_name) });
+  } catch (error) {
+    console.error('beehub-names error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
   
-      return res.status(200).json({ beehub_name: results.map(r => r.beehub_name) });
-    } catch (error) {
-      console.error('beehub-names error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
-  
-  export const getDistinctHiveSensors = async (req, res) => {
-    try {
-      const results = await HiveObservation.findAll({
-        attributes: [
-          [Sequelize.fn('DISTINCT', Sequelize.col('hive_sensor_id')), 'hive_sensor_id']
-        ],
-        raw: true
-      });
-  
-      return res.status(200).json({
-        hive_sensor_ids: results.map(r => r.hive_sensor_id)
-      });
-    } catch (error) {
-      console.error('hive_sensor_id error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+export const getDistinctHiveSensors = async (req, res) => {
+  try {
+    const results = await HiveObservation.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('hive_sensor_id')), 'hive_sensor_id']
+      ],
+      raw: true
+    });
+
+    return res.status(200).json({
+      hive_sensor_ids: results.map(r => r.hive_sensor_id)
+    });
+  } catch (error) {
+    console.error('hive_sensor_id error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 // One Thousand
-  export const bulkReadOneThousandHiveObservations = async (req, res) => {
-    try {
-      const results = await HiveObservation.findAll({
-        limit: 1000,
-        order: [['published_at', 'DESC']], // latest first
-        raw: true
-      });
-  
-      return res.status(200).json({
-        message: 'Bulk read of 1000 hive observations',
-        data: results
-      });
-    } catch (error) {
-      console.error('bulkReadOneThousandHiveObservations error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+export const bulkReadOneThousandHiveObservations = async (req, res) => {
+  try {
+    const results = await HiveObservation.findAll({
+      limit: 1000,
+      order: [['published_at', 'DESC']], // latest first
+      raw: true
+    });
+
+    return res.status(200).json({
+      message: 'Bulk read of 1000 hive observations',
+      data: results
+    });
+  } catch (error) {
+    console.error('bulkReadOneThousandHiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const bulkReadFiveThousandHiveObservations = async (req, res) => {
+  try {
+    const results = await HiveObservation.findAll({
+      limit: 5000,
+      order: [['published_at', 'DESC']], // latest first
+      raw: true
+    });
+
+    return res.status(200).json({
+      message: 'Bulk read of 5000 hive observations',
+      data: results
+    });
+  } catch (error) {
+    console.error('bulkReadFiveThousandHiveObservations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
   //Ten Thousand
   export const bulkReadTenThousandHiveObservations = async (req, res) => {
@@ -142,6 +160,25 @@ export const getAllBeehubNames = async (req, res) => {
       });
     } catch (error) {
       console.error('bulkReadOneThousandHiveObservations error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  // Twenty thousand
+  export const bulkReadTwentyThousandHiveObservations = async (req, res) => {
+    try {
+      const results = await HiveObservation.findAll({
+        limit: 20000,
+        order: [['published_at', 'DESC']], // latest first
+        raw: true
+      });
+  
+      return res.status(200).json({
+        message: 'Bulk read of 20.000 hive observations',
+        data: results
+      });
+    } catch (error) {
+      console.error('bulkReadTwentyThousandHiveObservations error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
