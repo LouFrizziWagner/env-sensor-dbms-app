@@ -3,7 +3,7 @@ import csv from 'csv-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dayjs from 'dayjs';
-import HiveObservation from '../models/mysql/HiveObservation.js';
+import HiveObservation from '../../models/mysql/HiveObservation.js';
 
 /** Read from csv D1, 
  * create artificial data and validate through sequelize */
