@@ -16,5 +16,11 @@ jmeter-tests/*/results
 
 /jmeter-tests
 
+/jmeter-tests/scripts/*
 
 /services/data
+
+/analysis
+
+/services
+/scripts
