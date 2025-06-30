@@ -87,7 +87,7 @@ Bi-weekly expert evaluations included:
 |----------|----------------|----------------|------|--------------|------|---------------------------------|
 | D1       | 2020-04-16 UTC | 2020-11-05 UTC | ~204 | 960,810      | No   | Spring–Fall 2020                |
 | D2       | 2020-11-06 UTC | 2021-04-14 UTC | ~160 | 876,106      | No   | Winter 2020–21                  |
-| D3–D6    | 2021–2023      |                |      | 3.67M+       | Yes  | Synthetic, shifted by 1–2 years|
+| D3 to D6    | 2021–2023      |                |      | 3.67M+       | Yes  | Synthetic, shifted by 1–2 years|
 
 ## Queries
 
@@ -96,7 +96,7 @@ Bi-weekly expert evaluations included:
 - `GET /get-all/last-24-hours` - All records from last 24 hours
 - `GET /top-twenty-observations` - Top 20 observations (5-min interval)
 - `GET /temp/humidity/average/all-time` - Global average temp/humidity
-- `GET /beehub-names` - List of apiary names
+- `GET /beehub-names` - List of the apiary names
 
 ### Anomaly Detection
 - `GET /time-between-observations/14-days` - Time gaps across all hives
