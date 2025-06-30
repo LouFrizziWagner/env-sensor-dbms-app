@@ -1,7 +1,7 @@
 # Sensor Database Application
 
 ## Description
-This project benchmarks a document-roiented DBMS (MongoDB) and a relational DBMS(MySQL) for managing sensor data in environmental monitoring applications, using multi-sensor data from honey bee hives in Québec, Canada.
+This project benchmarks a document-oriented DBMS (MongoDB) and a relational DBMS(MySQL) for managing sensor data in environmental monitoring applications, using multi-sensor data from honey bee hives in Québec, Canada.
 
 ## Getting Started
 
