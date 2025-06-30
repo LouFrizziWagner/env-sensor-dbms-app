@@ -1,330 +1,126 @@
 # Sensor Database Application
-## Benchmarking a Document DBMS and a Relational DBMS for managing sensor data in environmental monitoring applications
 
-Source of Test data: ([MSPB: a longitudinal multi-sensor dataset with phenotypic trait measurements from honey bees](https://zenodo.org/records/11398835))
-Publication of Paper of the data (https://arxiv.org/abs/2311.10876)
+## Description
+This project benchmarks a document-roiented DBMS (MongoDB) and a relational DBMS(MySQL) for managing sensor data in environmental monitoring applications, using multi-sensor data from honey bee hives in Québec, Canada.
 
-Data description (rewrite)
-We present a longitudinal Multi-Sensor dataset with Phenotypic trait measurements from honey Bees (MSPB). Data were continuously collected between May-2020 and April-2021 from 53 hives located at two apiaries in Québec, Canada. The sensor data included audio features, temperature, and relative humidity. The phenotypic measurements contained beehive population, number of brood cells (eggs, larva and pupa), Varroa destructor infestation levels, defensive and hygienic behaviors, honey yield, and winter mortality. Our study is amongst the first to provide a wide variety of phenotypic trait measurements annotated by apicultural science experts, which facilitate a broader scope of analysis on honey bees, such as bee acoustics analysis, multi-modal hive monitoring, queen presence detection, Varroa infection detection, hive population estimation, biological analysis of bees, etc.
+## Getting Started
 
-between April, 2020 and October, 2020 received a ‘D1’ (Summer Data)
-between October, 2020 and April, 2021 were labelled as ‘D2’ (Winter Data)
+### Prerequisites
 
-Here we use Winter Data (about 200mb csv)
+- Node.js (v18 or higher)
+- npm
+- MySQL, MongoDB
+- `.env` file configured with:
+```
+DB_TYPE=mysql # or mongodb
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=yourpassword
+MYSQL_DATABASE=sensordata
 
-(from paper:)
-D1 and D2 sensor data are both paired with (1) the time stamp (date and time) of the data collection, (2) hive ID, which is a
-unique number to identify each hive, (3) apiary ID, which indicates the apiary location of the hive, (4) temperature values, (5)
-relative humidity values, and (6) twenty audio features. The D1 phenotypic traits file has three sub-sheets, which details (1) the
-visit date and time of the human evaluations, as well as the evaluation tasks, (2) the population size of the colonies measured at
-each visit, (3) other phenotypic trait measurements, such as Varroa infestation levels, defensive and hygienic behavior, honey
-yield, etc. During the period of D2, hives were maintained in the winter chambers and only evaluated once in the Spring to
-check their winter survival rate. Hence, the D2 phenotypic traits file contains the survival status, as well as the mortality causes
-(if any) of all hives.
+MONGO_URI=mongodb://localhost:27017
+MONGO_DB_NAME=sensordata
+```
 
-## Sensors
-of audio, temperature, and relative humidity data
-recorded from a large number of hives located in Québec, Canada during a one-year period
+Install dependencies, run the server:
 
-This sensor is capable of concurrent
-recording of audio, relative humidity, and temperature data at regular intervals of 5 min, 15 min, and 15 min respectively. The
-recorded sensor data is wirelessly transmitted to a central data aggregator powered by solar energy and securely stored in the
-cloud. The sensor data was collected 24 hours a day, 7 days per week from May 2020 to June 2021. Besides continuous sensor
-recording, apicultural science experts visited hives bi-weekly to monitor the hive status and conducted evaluations on a regular
-basis. Colony phenotypic trait measurements, such as honey bee population, honey yield, and health status, were also collected,
-hence providing valuable context to interpret the sensor data.
+```
+npm install
 
-24 hours a day, 7 days per week from May 2020 to June 2021(D1 and D2 csv)
-audio every 5min
-humidty collected every 15min
-temperature every 15min
-hive status and bee population every 14 days
+node main.js
+```
 
-(1) a multi-modal sensor system with continuous data
-recording, and (2) phenotypic traits annotated by apicultural science experts on a bi-weekly basis
+Seed script for the database:
+```
+// MySQL
+node ./database/insert-mysql.js
 
-## Data 
-
-| #  | Column Name             | Data Type             | Description                                                                 |
-|----|-------------------------|------------------------|-----------------------------------------------------------------------------|
-| 1  | `published_at`          | datetime with timezone | Full UTC timestamp when the data was recorded                              |
-| 2  | `temperature`           | float                  | Temperature in degrees Celsius                                              |
-| 3  | `humidity`              | float                  | Relative humidity in percent                                                |
-| 4  | `tag_number`            | integer                | Unique ID for each hive                                                     |
-| 5  | `beehub_name`           | string                 | Name of the beehub or apiary location                                       |
-| 6  | `geolocation`           | string (WKT format)    | Geo-location point (latitude and longitude)                                 |
-| 7  | `hive_power`            | float                  | Battery or power status of the hive sensor                                  |
-| 8  | `lat`                   | float                  | Latitude (may be placeholder)                                               |
-| 9  | `long`                  | float                  | Longitude (may be placeholder)                                              |
-| 10 | `date`                  | date                   | Date portion of `published_at`                                              |
-| 11 | `time`                  | time                   | Time portion of `published_at`                                              |
-| 12 | `hz_122.0703125`        | float                  | Audio feature at 122.07 Hz                                                  |
-| 13 | `hz_152.587890625`      | float                  | Audio feature at 152.59 Hz                                                  |
-| 14 | `hz_183.10546875`       | float                  | Audio feature at 183.11 Hz                                                  |
-| 15 | `hz_213.623046875`      | float                  | Audio feature at 213.62 Hz                                                  |
-| 16 | `hz_244.140625`         | float                  | Audio feature at 244.14 Hz                                                  |
-| 17 | `hz_274.658203125`      | float                  | Audio feature at 274.66 Hz                                                  |
-| 18 | `hz_305.17578125`       | float                  | Audio feature at 305.18 Hz                                                  |
-| 19 | `hz_335.693359375`      | float                  | Audio feature at 335.69 Hz                                                  |
-| 20 | `hz_366.2109375`        | float                  | Audio feature at 366.21 Hz                                                  |
-| 21 | `hz_396.728515625`      | float                  | Audio feature at 396.73 Hz                                                  |
-| 22 | `hz_427.24609375`       | float                  | Audio feature at 427.25 Hz                                                  |
-| 23 | `hz_457.763671875`      | float                  | Audio feature at 457.76 Hz                                                  |
-| 24 | `hz_488.28125`          | float                  | Audio feature at 488.28 Hz                                                  |
-| 25 | `hz_518.798828125`      | float                  | Audio feature at 518.80 Hz                                                  |
-| 26 | `hz_549.31640625`       | float                  | Audio feature at 549.32 Hz                                                  |
-| 27 | `hz_579.833984375`      | float                  | Audio feature at 579.83 Hz                                                  |
-| 28 | `audio_density`         | float                  | Summary metric of audio signal density                                      |
-| 29 | `audio_density_ratio`   | float                  | Normalized ratio of audio density                                           |
-| 30 | `density_variation`     | float                  | Variation or standard deviation in audio density                            |
+//MongoDB
+node ./database/insert-mongodb.js
+```
 
 
-## Simple Environmental Sensor Monitoring Queries
 
 
-### Basic Monitoring
 
-- **Average Temperature Per Hive Per Day**
-  > `What is the average temperature for each hive on a daily basis?`
 
-- **Average Humidity Per Hive Per Day**
-  > `What is the average relative humidity recorded in each hive per day?`
+## Data Source
+- **Dataset**: [MSPB - Multi-Sensor with Phenotypic Traits in Honey Bees](https://zenodo.org/records/11398835)  
+- **Paper**: [arXiv:2311.10876](https://arxiv.org/abs/2311.10876)
 
-- **Daily Max/Min Hive Power**
-  > `What is the maximum and minimum hive power for each hive every day?`
+## Dataset Description
+Data was collected continuously from May 2020 to April 2021 across 53 hives in two apiaries. Sensors recorded:
+- **Audio** (every 5 minutes)
+- **Temperature** (every 15 minutes)
+- **Humidity** (every 15 minutes)
 
-- **Hourly Temperature Trends**
-  > `How does temperature change across 24 hours for each hive?`
+Bi-weekly expert evaluations included:
+- Hive population
+- Brood cell counts
+- Varroa infestation
+- Honey yield
+- Winter mortality
 
-- **Top Active / Inactive Hives**
-  > `Which hives have the highest or lowest hive power over the past 7 days?`
+**D1**: April–October 2020 (Summer)  
+**D2**: November 2020–April 2021 (Winter; used in this study)
 
----
+## Sensor Data Columns
+
+| Column                | Type                    | Description                          |
+|-----------------------|-------------------------|--------------------------------------|
+| `published_at`        | datetime with timezone  | UTC timestamp                        |
+| `temperature`         | float                   | Celsius                              |
+| `humidity`            | float                   | Percent                              |
+| `tag_number`          | int                     | Hive ID                              |
+| `beehub_name`         | string                  | Apiary name                          |
+| `geolocation`         | string (WKT)            | Coordinates                          |
+| `hive_power`          | float                   | Battery/power level                  |
+| `hz_*`                | float                   | 16 frequency bins (audio features)   |
+| `audio_density`       | float                   | Aggregate audio signal density       |
+| `audio_density_ratio` | float                   | Normalized audio density             |
+| `density_variation`   | float                   | Audio density variance               |
+
+## Dataset Summary
+
+| Data Set | Start Date     | End Date       | Days | Observations | Test | Notes                           |
+|----------|----------------|----------------|------|--------------|------|---------------------------------|
+| D1       | 2020-04-16 UTC | 2020-11-05 UTC | ~204 | 960,810      | No   | Spring–Fall 2020                |
+| D2       | 2020-11-06 UTC | 2021-04-14 UTC | ~160 | 876,106      | No   | Winter 2020–21                  |
+| D3–D6    | 2021–2023      |                |      | 3.67M+       | Yes  | Synthetic, shifted by 1–2 years|
+
+## Queries
+
+### Monitoring
+- `GET /get-max-temp/last-60-min` - Max temp in last hour
+- `GET /get-all/last-24-hours` - All records from last 24 hours
+- `GET /top-twenty-observations` - Top 20 observations (5-min interval)
+- `GET /temp/humidity/average/all-time` - Global average temp/humidity
+- `GET /beehub-names` - List of apiary names
 
 ### Anomaly Detection
-
-- **Sudden Spikes or Drops in Temperature / Humidity**
-  > `Are there any sudden spikes or drops in temperature or humidity readings?`
-
-- **Flat Audio Signal Detection**
-  > `Are there hives showing no change in hive power for extended periods (e.g., multiple hours/days)?`
-
-- **High Audio Variation**
-  > `Which hives have consistently high audio band density variation (ABDR)?`
-
----
-
-### Comparative Queries
-
-- **Environment Comparison Across Apiaries**
-  > `How do average temperature and humidity levels differ between apiary locations?`
-
-- **Humidity Outliers**
-  > `Are some hives regularly above or below the expected humidity range (50–60%)?`
-
----
-
-### Trend-Based Monitoring
-
-- **Weekly Hive Power Trends**
-  > `How does average hive power evolve on a weekly basis for each hive?`
-
-- **Temperature vs Hive Power Correlation**
-  > `Is there a significant correlation between internal hive temperature and hive power (audio activity)?`
-
-## Current Test Data has not correct time stamps.
-This means:
-- Average Temperature Per Hive Per Day
-- Average Humidity Per Hive Per Day
-- Daily Max/Min Hive Power
-can be tested correctly.
-
-But queries like:
-- Top Active / Inactive Hives (Last 7 days)
-- Hourly Temperature Trends
-need logically correct time stamps.
-
-
-## D2 Data set
-D1 has more attributes that D2 does not have. For homogeneous testing data this study will use the dataset D2, the sensor data collected in the winter time period.
-
-876,106 rows in D2_sensor_data.csv
-
-Tag_number will be in my model: hive_sensor_id,
-beehub_name is the Apiary id
-
-
-to do: style guide code 
-
-
-COUNT: 1836914
-
-D1 starts at: 2020-04-16 04:30:37+00:00
-ends at: 2020-11-05 23:59:56+00:00
-(~204 days)
-D2 starts at: 2020-11-06 00:00:09+00:00
-ends at: 2021-04-14 23:59:48+00:00
-Snythetic:
-D3
-D4
-
-D5
-D6
-
-## Test Data
-
-
-| Data Set | First Date (Timestamp)                         | Last Date (Timestamp)                          | Time Range (Days) | Sensor Observations | is_test_data | Note                                                                 |
-|----------|------------------------------------------------|------------------------------------------------|-------------------|----------------------|--------------|----------------------------------------------------------------------|
-| D1       | 16.04.2020<br>(2020-04-16 04:30:37+00:00)       | 05.11.2020<br>(2020-11-05 23:59:56+00:00)       | ~204              | 960,810 ; 960809             | false        | Original spring–fall dataset (UTC); no Daylight Saving Time  impact.                                      |
-| D2       | 06.11.2020<br>(2020-11-06 00:00:09+00:00)       | 14.04.2021<br>(2021-04-14 23:59:48+00:00)       | ~160              | 876,106 ; 876105              | false        | Original winter dataset (UTC); no DST impact.                                           |
-| D3       | 15.04.2021<br>(2021-04-15 02:00:37+02:00)       | 04.11.2021<br>(2021-11-04 20:29:56+01:00)       | ~203              | 960,809 ; 960809              | true         | Synthetic summer from D1 with a +1 year offset; includes DST transition (UTC+2 → UTC+1). |
-| D4       | 05.11.2021<br>(2021-11-05 23:59:56+01:00)       | 15.04.2022<br>(2022-04-15 00:59:35+02:00)       | ~160              | 876,105 ; 876105              | true         | Synthetic winter from D2 with a +1 year offset; remains on UTC+1, no DST change.         |
-| D5       | 15.04.2022<br>(2022-04-15 00:59:35+02:00)       | 04.11.2022<br>(2022-11-04 19:28:54+01:00)       | ~203              | 960,809              | true         | Continues D3 (which was based on D1); preserves summer structure with consistent timing and DST. |
-| D6       | 04.11.2022<br>(2022-11-04 19:30:37+01:00)       | 15.04.2023<br>(2023-04-15 00:59:35+02:00)       | ~160              | 876,105              | true         | Continues D4 (which was based on D2); aligns precisely after D5; winter span, no DST.     |
-
-
-
-876106 + 960810 + 960809 = 2797725, blank rows or header differences, COUNT in mysql = 2,797,723
-D4 = 876,105
-
-
-D1 + D2 + D3 + D4 = 3,673,828 (according to COUNT(*))
-
-Sum of all D1 to D6 = 5,510,742
-
-## Test Data Formatted for thesis:
-
-| Data Set | First Date (Timestamp)            | Last Date (Timestamp)             | Time Range (Days) | Sensor Observations | is_test_data | Note                                                                 |
-|---------|-----------------------------------|-----------------------------------|-------------------|----------------------|--------------|----------------------------------------------------------------------|
-| D1      | 2020-04-16 04:30:37 UTC            | 2020-11-05 23:59:56 UTC            | ~204              | 960,810              | false        | Original spring–fall dataset (UTC); no DST impact.                                      |
-| D2      | 2020-11-06 00:00:09 UTC            | 2021-04-14 23:59:48 UTC            | ~160              | 876,106              | false        | Original winter dataset (UTC); no DST impact.                                           |
-| D3      | 2021-04-15 02:00:37 UTC+2          | 2021-11-04 20:29:56 UTC+1          | ~203              | 960,810              | true         | Synthetic summer replica of D1, shifted by +1 year; includes DST transition (UTC+2 → UTC+1). |
-| D4      | 2021-11-05 23:59:56 UTC+1          | 2022-04-15 00:59:35 UTC+2          | ~160              | 876,106              | true         | Synthetic winter replica of D2, shifted by +1 year; remains on UTC+1, no DST change.         |
-| D5      | 2022-04-15 00:59:35 UTC+2          | 2022-11-04 19:28:54 UTC+1          | ~203              | 960,810              | true         | Continuation of D3 (replica of D1); maintains summer pattern and DST transition.             |
-| D6      | 2022-11-04 19:30:37 UTC+1          | 2023-04-15 00:59:35 UTC+2          | ~160              | 876,106              | true         | Continuation of D4 (replica of D2); aligned after D5; winter pattern, no DST.                |
-
-## Mongodb
-
-start rancher dekstop
-
-### start detached via yaml
-
-clean
-
-### end docker:
-docker compose down
-
-
-### remove attention:
-docker rm mongo-container
-
-
-### start
-docker compose up -d
-
-docker inspect mongo-container
-
-mongosh -u userNamehere -p passwordHere
-mongosh -u root -p admin
-
-db.getUsers()
-
-
-mongosh
-show databases
-
-use mydb
-
-db.hive_observations.countDocuments()
-
-db.hiveobservations.find().limit(5)
-
-
-db.hive_observations.aggregate([
-  {
-    $group: {
-      _id: "$published_at",
-      count: { $sum: 1 },
-      ids: { $addToSet: "$_id" }
-    }
-  },
-  { $match: { count: { $gt: 1 } } }
-])
-
-## Momngo DB Modeling
-
-db.hive_observations.getIndexes()
-
-Monitor with explain() plans for performance.
-db.<collection>.find(<query>).explain("executionStats")
-
-## STATUS MONGO
-
-mongostat --host localhost --port 27017
-
-sensor_data_benchmark> db.stats()
-{
-  db: 'sensor_data_benchmark',
-  collections: Long('1'),
-  views: Long('0'),
-  objects: Long('5510741'),
-  avgObjSize: 778.6360420495175,
-  dataSize: 4290861561,
-  storageSize: 1005899776,
-  indexes: Long('2'),
-  indexSize: 118415360,
-  totalSize: 1124315136,
-  scaleFactor: Long('1'),
-  fsUsedSize: 9721090048,
-  fsTotalSize: 105088212992,
-  ok: 1
-}
-
-### CPU TESTING
-htop  # shows CPU, memory, per-process stats
-
-```
-{
-    "published_at": "${__time(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')}",
-    "temperature": ${__Random(10,40)},
-    "humidity": ${__Random(30,80)},
-    "hive_sensor_id": ${__RandomFromList(200602,201700,200599,200828)},
-    "beehub_name": "${__RandomFromList(nectar-bh131,nectar-bh121)}",
-    "geolocation": {
-        "type": "Point",
-        "coordinates": [0, 0]
-    },
-    "lat": 0,
-    "long": 0,
-    "hive_power": ${__Random(-20,20)},
-    "date": null,
-    "time": "${__time(HH:mm:ss)}",
-    "audio_density": ${__Random(0,50)},
-    "audio_density_ratio": ${__Random(0.1,1.0)},
-    "density_variation": ${__Random(0,50)},
-    "hz_122_0703125": ${__Random(-20,10)},
-    "hz_152_587890625": ${__Random(-20,10)},
-    "hz_183_10546875": ${__Random(-20,10)},
-    "hz_213_623046875": ${__Random(-20,10)},
-    "hz_244_140625": ${__Random(-20,10)},
-    "hz_274_658203125": ${__Random(-20,10)},
-    "hz_305_17578125": ${__Random(-20,10)},
-    "hz_335_693359375": ${__Random(-20,10)},
-    "hz_366_2109375": ${__Random(-20,10)},
-    "hz_396_728515625": ${__Random(-20,10)},
-    "hz_427_24609375": ${__Random(-20,10)},
-    "hz_457_763671875": ${__Random(-20,10)},
-    "hz_488_28125": ${__Random(-20,10)},
-    "hz_518_798828125": ${__Random(-20,10)},
-    "hz_549_31640625": ${__Random(-20,10)},
-    "hz_579_833984375": ${__Random(-20,10)},
-    "is_test_data": true
-}
-```
-
-
-
-## DOcker Mysql
-
-docker compose -f docker-compose-mysql.yml up -d
+- `GET /time-between-observations/14-days` - Time gaps across all hives
+- `GET /time-between-observations/14-days-august-interval` - 14-day interval gaps (August)
+
+### Acoustic Analysis
+- `GET /acoustic/variance/august-2020` - Frequency variance by hive (August 2020)
+- `GET /acoustic/variance/april-2020-and-2021` - Frequency variance (April 2020 vs 2021)
+
+### Humidity Stats
+- `GET /humidity/min/august2020` - Min humidity (August 2020, first week)
+
+### Load Testing
+- `GET /bulk-read-1000` - Read 1,000 rows
+- `GET /bulk-read-10000` - Read 10,000 rows
+- `GET /bulk-read-20000` - Read 20,000 rows
+
+### Insert Test
+- `POST /single-observation-insert` - Insert one observation
+
+## Limitations
+Due to timestamp irregularities, only date-based aggregation is currently valid:
+- Daily averages (temperature, humidity, power)a are valid
+- 7-day trend or hourly patterns may be inaccurate
+
+## Notes
+- `tag_number` maps to `hive_sensor_id`  
