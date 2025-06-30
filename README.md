@@ -3,6 +3,8 @@
 ## Description
 This project benchmarks a document-oriented DBMS (MongoDB) and a relational DBMS(MySQL) for managing sensor data in environmental monitoring applications, using multi-sensor data from honey bee hives in Québec, Canada.
 
+Load testing is automated using Apache JMeter and shell scripts that execute predefined `.jmx` request simulations.
+
 ## Getting Started
 
 ### Prerequisites
@@ -10,6 +12,7 @@ This project benchmarks a document-oriented DBMS (MongoDB) and a relational DBMS
 - Node.js (v18 or higher)
 - npm
 - MySQL, MongoDB
+- Apache JMeter 5.6.3 
 - `.env` file configured with:
 ```
 DB_TYPE=mysql # or mongodb
@@ -39,10 +42,6 @@ node ./database/insert-mysql.js
 //MongoDB
 node ./database/insert-mongodb.js
 ```
-
-
-
-
 
 
 ## Data Source
