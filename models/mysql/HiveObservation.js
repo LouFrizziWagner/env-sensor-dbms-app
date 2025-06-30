@@ -1,18 +1,22 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../../config/mysql-config.js';
 
+/** PARTITIONED MODEL */
+
 class HiveObservation extends Model {}
 
 HiveObservation.init(
   {
-    id: {
+    // Composite PK required for MySQL partitioning (no AUTO_INCREMENT allowed)
+    hive_sensor_id: {
       type: DataTypes.INTEGER,
-      autoIncrement: true,
+      allowNull: false,
       primaryKey: true,
     },
     published_at: {
       type: DataTypes.DATE,
       allowNull: false,
+      primaryKey: true,
     },
     temperature: {
       type: DataTypes.FLOAT,
@@ -22,18 +26,18 @@ HiveObservation.init(
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    hive_sensor_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
+    // hive_sensor_id: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: false,
+    // },
     beehub_name: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    geolocation: {
-      type: DataTypes.GEOMETRY('POINT'),
-      allowNull: true,
-    },
+    // geolocation: {
+    //   type: DataTypes.GEOMETRY('POINT'),
+    //   allowNull: true,
+    // },
     lat: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -97,7 +101,7 @@ HiveObservation.init(
         //hive id or beehub name
       }
     ],
-    tableName: 'hive_observations',
+    tableName: 'hive_observations_partitions',//'hive_observations', //hive_observations_partitions
     timestamps: false,
   }
 );

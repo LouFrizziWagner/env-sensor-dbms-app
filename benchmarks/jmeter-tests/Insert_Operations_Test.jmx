@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Insert_Operations_Test">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group">
+        <stringProp name="ThreadGroup.num_threads">${__P(THREAD_COUNT)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(RAMP_UP_IN_SECONDS)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(DURATION_IN_SECONDS)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
+          <stringProp name="HTTPSampler.domain">${__P(BASE_URL)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT_NUMBER)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.path">${__P(ENDPOINT_PATH)}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+    &quot;published_at&quot;: &quot;${__time(yyyy-MM-dd&apos;T&apos;HH:mm:ss.SSS&apos;Z&apos;)}&quot;,&#xd;
+    &quot;temperature&quot;: 11,&#xd;
+    &quot;humidity&quot;: 33,&#xd;
+    &quot;hive_sensor_id&quot;: &quot;${hive_sensor_id}&quot;,&#xd;
+    &quot;beehub_name&quot;: &quot;${beehub_name}&quot;,&#xd;
+    &quot;geolocation&quot;: {&#xd;
+        &quot;type&quot;: &quot;Point&quot;,&#xd;
+        &quot;coordinates&quot;: [0, 0]&#xd;
+    },&#xd;
+    &quot;lat&quot;: 0,&#xd;
+    &quot;long&quot;: 0,&#xd;
+    &quot;hive_power&quot;: 1,&#xd;
+    &quot;date&quot;: null,&#xd;
+    &quot;time&quot;: &quot;${__time(HH:mm:ss)}&quot;,&#xd;
+    &quot;audio_density&quot;: 1,&#xd;
+    &quot;audio_density_ratio&quot;: 1,&#xd;
+    &quot;density_variation&quot;: 1,&#xd;
+    &quot;hz_122_0703125&quot;: 1,&#xd;
+    &quot;hz_152_587890625&quot;: 1,&#xd;
+    &quot;hz_183_10546875&quot;: 1,&#xd;
+    &quot;hz_213_623046875&quot;: 1,&#xd;
+    &quot;hz_244_140625&quot;: 1,&#xd;
+    &quot;hz_274_658203125&quot;: 1,&#xd;
+    &quot;hz_305_17578125&quot;: 1,&#xd;
+    &quot;hz_335_693359375&quot;: 1,&#xd;
+    &quot;hz_366_2109375&quot;: 1,&#xd;
+    &quot;hz_396_728515625&quot;: 1,&#xd;
+    &quot;hz_427_24609375&quot;: 1,&#xd;
+    &quot;hz_457_763671875&quot;: 1,&#xd;
+    &quot;hz_488_28125&quot;: 1,&#xd;
+    &quot;hz_518_798828125&quot;: 1,&#xd;
+    &quot;hz_549_31640625&quot;: 1,&#xd;
+    &quot;hz_579_833984375&quot;: 1,&#xd;
+    &quot;is_test_data&quot;: 0&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer">
+          <stringProp name="ConstantTimer.delay">${__P(THREAD_DELAY_IN_MS)}</stringProp>
+        </ConstantTimer>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-Type</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">//random sensor ID
+def sensorIds = [&apos;200602&apos;, &apos;201700&apos;, &apos;200599&apos;, &apos;200828&apos;]
+def randomSensorId = sensorIds[new Random().nextInt(sensorIds.size())]
+vars.put(&apos;hive_sensor_id&apos;, randomSensorId)
+
+// andom beehub name
+def beehubs = [&apos;nectar-bh131&apos;, &apos;nectar-bh121&apos;]
+def randomBeehub = beehubs[new Random().nextInt(beehubs.size())]
+vars.put(&apos;beehub_name&apos;, randomBeehub)</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

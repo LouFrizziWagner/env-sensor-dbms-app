@@ -24,3 +24,6 @@ jmeter-tests/*/results
 
 /services
 /scripts
+/benchmarks/jmeter-test-results/
+
+/benchmarks/data-visualization/

@@ -16,17 +16,21 @@
   "type": "module",
   "dependencies": {
     "axios": "^1.7.9",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "csv-parse": "^5.6.0",
     "csv-parser": "^3.2.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
-    "express": "^4.21.1",
+    "express": "^4.21.2",
     "hdr-histogram-js": "^2.0.3",
     "json2csv": "^6.0.0-alpha.2",
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.0",
     "mysql2": "^3.14.0",
+    "perf_hooks": "^0.0.1",
+    "pg": "^8.16.1",
+    "puppeteer": "^24.10.0",
     "sequelize": "^6.37.5"
   },
   "bugs": {

@@ -31,7 +31,7 @@ ENDPOINTS=(
 "/${DBMS}/temperature-humidity-correlation"
 )
 
-JMX_FILE="/Users/louwagner/Desktop/JMeter_Template_TestPlans/generic-get-testplan.jmx"
+JMX_FILE="./generic-get-testplan.jmx"
 
 #ramp=x loop=10 thread=x
 CONFIGS=(
